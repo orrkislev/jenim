@@ -15,6 +15,8 @@ const denimOptions = [
 const natural = ['#f1edec', '#ffffff', '#fefae0', '#e6f5fa', '#fcfcfc']
 
 const warpColors = natural
+const denimColor = denimOptions[0]
+let stitchColor = gold[1]
 
 const grayscale1 = ['#999', '#555']
 const grayscale2 = ['#333', '#222', '#111']
@@ -22,13 +24,14 @@ const bgColor = ['#969387', '#f0eee6', '#54635e']
 
 const BG = '#ffcf40'
 
-let initialThreadSize = 8
+let initialThreadSize = 4
 let threadSize = initialThreadSize
 
 function setup() {
     createCanvas(min(windowWidth, windowHeight), min(windowWidth, windowHeight));
     angleMode(DEGREES)
     initialThreadSize = width/1000 * initialThreadSize
+    stitchColor = color(stitchColor)
     noLoop()
     noStroke()
     noFill()
@@ -40,9 +43,19 @@ async function makeImage() {
     clear()
 
     fullPattern = new LayoutPattern([v(0, 0), v(width, 0), v(width, height), v(0, height)])
-    denim = new Denim(fullPattern, denimOptions[1])
+    denim = new Denim(fullPattern, denimColor)
+
+    denim.colorFunc = (clr, x, y) => {
+        const noiseVal = noise(x / 200, y / 200, 0.8)
+        if (noiseVal > 0.5) clr = lerpColor(clr, color(255), noiseVal + 0.2)
+        if (abs(x - 100) < initialThreadSize) return color(255)
+        if (x > 100 & x - 100 < 120) clr = lerpColor(clr, color(0), random(0, 0.3))
+        return clr
+    }
+    
     await denim.draw()
 
+    return
     // fill(0)
     // for (let x=0;x<width;x+=3){
     //     for (let y=0;y<height;y+=3){
@@ -51,56 +64,59 @@ async function makeImage() {
     //     }
     // }
 
-    l = new LayoutPattern([v_rel(0.3, -0.1), v_rel(0.32, -0.12), v_rel(0.5, 0.5), v_rel(0.52, 0.52), v_rel(1.1, 0.7), v_rel(1.1, -0.1)])
-    // l = new LayoutPattern([v_rel(-0.1,0.5), v_rel(.2, .2), v_rel(.7,.6), v_rel(1.1,0.3), v_rel(1.1,-0.1), v(-0.1,-0.1)])
+    // l = new LayoutPattern([v_rel(0.3, -0.1), v_rel(0.32, -0.12), v_rel(0.5, 0.5), v_rel(0.52, 0.52), v_rel(1.1, 0.7), v_rel(1.1, -0.1)])
+    l = new LayoutPattern([v_rel(-0.1,0.5), v_rel(.2, .2), v_rel(.7,.6), v_rel(1.1,0.3), v_rel(1.1,-0.1), v(-0.1,-0.1)])
     // l = new LayoutPattern([v_rel(0.6,-0.1),v_rel(0.7,0.5), v_rel(0.8,0.5), v_rel(0.7,-0.1)])
-    await l.goAlong(async p => burn(p, 70, 20))
+    await l.goAlong(async p => await burn(p, 70, 20))
+    await l.goAlong(async p => await burn(p, 40, 20))
+    await l.goAlong(async p => await burn(p, 20, 20))
 
-    denim2 = new Denim(l, denimOptions[1])
-    stitchColor = color(gold[0])
+    denim2 = new Denim(l, denimColor)
+    denim2.drawBorderShadows = true
     await denim2.draw()
 
     l.offset(4)
-    await l.goAlong(async p => dodge(p, 8, 80))
+    await l.goAlong(async p => await dodge(p, 8, 80))
+    await l.goAlong(async p => await dodge(p, 5, 80))
 
     l.offset(6)
-    await l.goAlong(async p => dodge(p, 10, 7))
+    await l.goAlong(async p => await dodge(p, 10, 7))
 
     l.offset(10)
     for (st of l.stitches()) {
         threadSize = initialThreadSize * 2
-        for (let i = 0; i < 1; i += 0.3) dodge(p5.Vector.lerp(st[0], st[1], i).add(0, 4), 10, 40)
-        for (let i = 0; i < 1; i += 0.3) burn(p5.Vector.lerp(st[0], st[1], i).add(0, -4), 20, 50)
-        thread(st, stitchColor)
+        for (let i = 0; i < 1; i += 0.3) {
+            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize*3, 40)
+            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize*2, 20)
+        }
+        await thread(st, stitchColor)
     }
 
     l.offset(20)
     for (let i = 0; i < l.ps.length; i += 3) {
         const v = sin(i * 8)
-        if (v > 0) burn(l.ps[i], random(30, 60), 10)
-        else dodge(l.ps[i], random(30, 60), 10)
+        if (v > 0) {
+            await burn(l.ps[i], random(30, 60), 10)
+            await burn(l.ps[i], 20, 30)
+        } else {
+            await dodge(l.ps[i], random(30, 60), 10)
+        }
     }
 
     l.offset(20)
     for (st of l.stitches()) {
-        for (let i = 0; i < 1; i += 0.3) dodge(p5.Vector.lerp(st[0], st[1], i).add(0, 4), 10, 40)
-        for (let i = 0; i < 1; i += 0.3) burn(p5.Vector.lerp(st[0], st[1], i).add(0, -4), 20, 80)
-        thread(st, stitchColor)
+        for (let i = 0; i < 1; i += 0.3) {
+            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize*3, 40)
+            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize*2, 20)
+        }
+        await thread(st, stitchColor)
     }
 
     l.offset(25)
-    await l.goAlong(async p => dodge(p, 20, 10))
+    await l.goAlong(async p => await dodge(p, 20, 10))
 
     l.offset(10)
-    await l.goAlong(async p => burn(p, 20, 10))
-
-    // denim.colorFunc = (clr, x, y) => {
-    //     const noiseVal = noise(x / 200, y / 200, 0.8)
-    //     if (noiseVal > 0.5) clr = lerpColor(clr, color(255), noiseVal + 0.2)
-    //     if (abs(x - 100) < initialThreadSize) return color(255)
-    //     if (x > 100 & x - 100 < 120) clr = lerpColor(clr, color(0), random(0, 0.3))
-    //     return clr
-    // }
+    await l.goAlong(async p => await burn(p, 20, 10))
 
     // noStroke()
     // resetMatrix()
@@ -149,31 +165,29 @@ function makeStitch(stitchPattern) {
 
 async function dodge(p, size, force = 7) {
     blendMode(DODGE)
-    fill(200, 200, 255, force)
-    noStroke()
-    circle(p.x, p.y, size * random(0.4, 1))
-    // await softBrush(p,size)
+    stroke(200, 200, 255, force)
+    // noStroke()
+    // circle(p.x, p.y, size * random(0.4, 1))
+    await softBrush(p,size)
     blendMode(BLEND)
 }
 
 async function burn(p, size, force = 7) {
     blendMode(BURN)
-    fill(30, 30, 90, force)
-    noStroke()
-    circle(p.x, p.y, size * random(0.4, 1))
-    // await softBrush(p,size)
+    stroke(30, 30, 90, force)
+    // noStroke()
+    // circle(p.x, p.y, size * random(0.4, 1))
+    await softBrush(p,size)
     blendMode(BLEND)
 }
 async function softBrush(p, r) {
-    for (let i = 0; i < 50; i++) {
-        const rr = random(r)
+    for (let i = 0; i < r*10; i++) {
+        const rr = random()*r/2
         const a = random(360)
-        await drawDot(p.add(cos(a) * rr, sin(a) * rr))
+        strokeWeight(random(2))
+        await drawDot(p.copy().add(cos(a) * rr, sin(a) * rr))
     }
 }
-
-
-
 
 
 

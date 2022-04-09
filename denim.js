@@ -1,21 +1,29 @@
+const DRAW_WARP = true
+const warpSpacingMinMax = [0.8,2]
+const weftSpacingMinMax = [1,1.5]
+
+const startOffset = [0,1]             // [0,1,2]
+const patternTop = [10,5]      // [2]
+const patternBottom = [1,5]    // [1]
+
 class Denim {
     constructor(layoutPattern, colors) {
         this.layoutPattern = layoutPattern
         this.colors = colors
         this.rotation = 0
         this.holeGraphics = createGraphics(width, height)
-        this.visibleWhite = 0.6
+        this.visibleWhite = 0.3
         this.darkness = 0.6
         this.drawBorderShadows = false
         this.noiseScale = random(300, 700)
         this.shadowPatterns = []
     }
-    setShadow(pattern){
+    setShadow(pattern) {
         pattern = pattern.offset(-100)
         const dims = pattern.getDimension()
         const x = dims.pos.x
         const y = dims.pos.y
-        this.shadowPatterns.push({x,y,pattern})
+        this.shadowPatterns.push({ x, y, pattern })
     }
     async draw() {
         await this.drawWarp()
@@ -70,7 +78,7 @@ class Denim {
         ps.forEach(p => this.holeGraphics.curveVertex(p.x, p.y))
         this.holeGraphics.endShape()
         this.holeEnds = []
-        image(this.holeGraphics,0,0)
+        image(this.holeGraphics, 0, 0)
     }
     pointInHole(p) {
         return alpha(this.holeGraphics.get(p.x, p.y)) > 0
@@ -83,7 +91,7 @@ class Denim {
         const numPoints = 4
         for (let i = 0; i <= numPoints; i++) this.warp[0].push(v(this.w * i / numPoints, 0))
         while (this.warp[this.warp.length - 1].filter(p => p.y < this.h).length > 0) {
-            const ps = this.warp[this.warp.length - 1].map(p => p.copy().add(0, threadSize * random(0.8, 2)))
+            const ps = this.warp[this.warp.length - 1].map(p => p.copy().add(0, threadSize * random(warpSpacingMinMax[0], warpSpacingMinMax[1])))
             this.warp.push(ps)
         }
         this.warp = this.warp.map(w => makeCurve(w))
@@ -92,22 +100,24 @@ class Denim {
         this.startDraw()
 
         this.makeWarp()
-        // for (let i = 0; i < this.warp.length; i++) {
-        //     const threadColor = lerpColor(color(warpColors[0]), color(warpColors[1]), random())
-        //     let string = []
-        //     for (let j = 0; j < this.warp[i].length; j++) {
-        //         const p = this.warp[i][j]
-        //         if (this.pointInHole(p)) {
-        //             if (string.length > 0) {
-        //                 await this.drawThread(string, threadColor)
-        //                 string = []
-        //             }
-        //         } else {
-        //             string.push(p.copy())
-        //         }
-        //     }
-        //     await this.drawThread(string, threadColor)
-        // }
+        if (DRAW_WARP) {
+            for (let i = 0; i < this.warp.length; i++) {
+                const threadColor = lerpColor(color(warpColors[0]), color(warpColors[1]), random())
+                let string = []
+                for (let j = 0; j < this.warp[i].length; j++) {
+                    const p = this.warp[i][j]
+                    if (this.pointInHole(p)) {
+                        if (string.length > 0) {
+                            await this.drawThread(string, threadColor)
+                            string = []
+                        }
+                    } else {
+                        string.push(p.copy())
+                    }
+                }
+                await this.drawThread(string, threadColor)
+            }
+        }
         this.endDraw()
     }
     getPosOnWarp(row, d) {
@@ -120,12 +130,8 @@ class Denim {
         const color1 = color(this.colors[0])
         const color2 = color(this.colors[1])
         const color3 = lerpColor(color1, color(0), 0.7)
-        const startOffset = [0, 1, 2]
-        const patternTop = [4]
-        const patternBottom = [2]
 
-
-        for (let x = 0; x < this.w; x += threadSize * random(0.8, 1.1)) {
+        for (let x = 0; x < this.w; x += threadSize * random(weftSpacingMinMax[0],weftSpacingMinMax[1])) {
             startOffset.push(startOffset.shift())
             const threadColor = lerpColor(color1, color2, random())
             const brightColor = lerpColor(threadColor, color(255), this.visibleWhite)
@@ -151,27 +157,27 @@ class Denim {
                 closeToHolePoints.forEach(p => this.holeEnds.push(p.copy()))
 
                 let stitchColor = (colorCount % 2 == 0) ? threadColor : brightColor
-                // stitchColor = this.colorFunc(stitchColor, threadPs[0].x, threadPs[0].y)
-                // stitchColor = lerpColor(stitchColor, color3, noise(threadPs[0].x / this.noiseScale, threadPs[0].y / this.noiseScale) * this.darkness)
+                stitchColor = this.colorFunc(stitchColor, threadPs[0].x, threadPs[0].y)
+                stitchColor = lerpColor(stitchColor, color3, noise(threadPs[0].x / this.noiseScale, threadPs[0].y / this.noiseScale) * this.darkness)
 
-                // if (this.drawBorderShadows == true){
-                //     const borderDist = this.layoutPattern.distToBorder(threadPs[0])
-                //     if (borderDist < threadSize*4) {
-                //         const x = map(borderDist, 4, 0, 0.5, .8)
-                //         stitchColor = lerpColor(stitchColor, color(255), x)
-                //     } else if (borderDist < threadSize*10) {
-                //         const x = map(borderDist, 10, 0, 0.2, .8)
-                //         stitchColor = lerpColor(stitchColor, color3, x)
-                //     } else if (borderDist < threadSize*60) {
-                //         const x = map(borderDist, 60, 30, 0.5, 1)
-                //         stitchColor = lerpColor(stitchColor, color3, noise(threadPs[0].x / 5, threadPs[0].y / 100) * x)
-                //     }
-                // }
+                if (this.drawBorderShadows == true){
+                    const borderDist = this.layoutPattern.distToBorder(threadPs[0])
+                    if (borderDist < threadSize*8) {
+                        const x = map(borderDist, 4, 0, 0.5, .8)
+                        stitchColor = lerpColor(stitchColor, color(255), x)
+                    } else if (borderDist < threadSize*20) {
+                        const x = map(borderDist, 10, 0, 0.2, .8)
+                        stitchColor = lerpColor(stitchColor, color3, x)
+                    } else if (borderDist < threadSize*60) {
+                        const x = map(borderDist, 60, 30, 0.5, 1)
+                        stitchColor = lerpColor(stitchColor, color3, noise(threadPs[0].x / 5, threadPs[0].y / 100) * x)
+                    }
+                }
 
-                // this.shadowPatterns.forEach(shadowPattern=>{
-                //     if (shadowPattern.pattern.pointInPattern(threadPs[0].copy().sub(shadowPattern.x,shadowPattern.y))) 
-                //         stitchColor = lerpColor(stitchColor,color(0), 0.7) 
-                // })
+                this.shadowPatterns.forEach(shadowPattern=>{
+                    if (shadowPattern.pattern.pointInPattern(threadPs[0].copy().sub(shadowPattern.x,shadowPattern.y))) 
+                        stitchColor = lerpColor(stitchColor,color(0), 0.7) 
+                })
 
                 await this.drawThread(threadPs, stitchColor)
 
@@ -238,7 +244,7 @@ class Denim {
 
 
 
-async function thread(ps, clr, ) {
+async function thread(ps, clr,) {
     noFill()
     noStroke()
 
@@ -270,14 +276,14 @@ async function thread(ps, clr, ) {
         newPs.forEach(p => p.add(crv[i]))
         for (let pIndex = 0; pIndex < newPs.length; pIndex++) {
             let val = getShadeAtVal(shade_round, i / crv.length) * 150
-            val += getShadeAtAngle(shade_round_shiny, pIndex*7.5) * 50
+            val += getShadeAtAngle(shade_round_shiny, pIndex * 7.5) * 50
             val += (i % (10 + pIndex * twistK)) / (10 + pIndex * twistK) * 50
-            stroke(0,val)
+            stroke(0, val)
             await drawDot(newPs[pIndex])
         }
     }
 
-    for (let i = 0; i < crv.length*5; i++) await tinyThread(choose(crv), clr)
+    for (let i = 0; i < crv.length * 5; i++) await tinyThread(choose(crv), clr)
 }
 
 async function tinyThread(p, clr, l = 1) {
@@ -298,32 +304,32 @@ class LayoutPattern {
     constructor(ps) {
         this.p = createGraphics(width, height)
         let newPs = []
-        for (let i=0;i<ps.length-1;i++){
+        for (let i = 0; i < ps.length - 1; i++) {
             const p1 = ps[i]
-            const p2 = ps[i+1]
-            const mid = p5.Vector.add(p1,p2).div(2)
-            const l = p5.Vector.dist(p1,p2)/25
-            mid.add(p5.Vector.sub(p2,p1).rotate(90).normalize().mult(random(-l,l)))
-            const crv = makeCurve([p1,mid,p2])
-            newPs = [...newPs,...crv]
+            const p2 = ps[i + 1]
+            const mid = p5.Vector.add(p1, p2).div(2)
+            const l = p5.Vector.dist(p1, p2) / 25
+            mid.add(p5.Vector.sub(p2, p1).rotate(90).normalize().mult(random(-l, l)))
+            const crv = makeCurve([p1, mid, p2])
+            newPs = [...newPs, ...crv]
         }
         this.ps = newPs
 
         this.p.beginShape()
         this.p.curveVertex(this.ps[0].x, this.ps[0].y)
         this.ps.forEach(p => this.p.curveVertex(p.x, p.y))
-        this.p.curveVertex(this.ps[this.ps.length-1].x, this.ps[this.ps.length-1].y)
+        this.p.curveVertex(this.ps[this.ps.length - 1].x, this.ps[this.ps.length - 1].y)
         this.p.endShape(CLOSE)
         this.getDimension()
     }
-    draw(){
+    draw() {
         noFill()
         stroke(0)
         strokeWeight(3)
         beginShape()
         curveVertex(this.ps[0].x, this.ps[0].y)
         this.ps.forEach(p => curveVertex(p.x, p.y))
-        curveVertex(this.ps[this.ps.length-1].x, this.ps[this.ps.length-1].y)
+        curveVertex(this.ps[this.ps.length - 1].x, this.ps[this.ps.length - 1].y)
         endShape(CLOSE)
     }
     getDimension() {
@@ -353,28 +359,28 @@ class LayoutPattern {
             print(i, s, e)
         }
     }
-    offset(h){
+    offset(h) {
         let newPs = []
-        for (let i=0;i<this.ps.length-1;i++){
+        for (let i = 0; i < this.ps.length - 1; i++) {
             const p1 = this.ps[i]
-            const p2 = this.ps[i+1]
-            const dir = p5.Vector.sub(p1,p2).rotate(90).normalize().mult(h)
-            newPs.push(p5.Vector.add(p1,dir))
+            const p2 = this.ps[i + 1]
+            const dir = p5.Vector.sub(p1, p2).rotate(90).normalize().mult(h)
+            newPs.push(p5.Vector.add(p1, dir))
         }
         this.ps = newPs
     }
-    async goAlong(func){
-        for (let i=0;i<this.ps.length;i+=5){
+    async goAlong(func) {
+        for (let i = 0; i < this.ps.length; i += 5) {
             const p = this.ps[i]
             await func(p)
         }
     }
-    stitches(){
+    stitches() {
         const stitchLength = 15
         const stitchSkip = 7
-        const all =[]
-        for (let i=0;i<this.ps.length-stitchSkip+stitchLength-1;i+=stitchSkip+stitchLength){
-            all.push([this.ps[i],this.ps[i+stitchLength]])
+        const all = []
+        for (let i = 0; i < this.ps.length - stitchSkip - stitchLength - 1; i += stitchSkip + stitchLength) {
+            all.push([this.ps[i], this.ps[i + stitchLength]])
         }
         return all
     }

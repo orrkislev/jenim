@@ -31,7 +31,9 @@ function makeCurve(crv) {
 
     const newCrv = []
     for (let i = 0; i < crv.length - 3; i++) {
-        const l = p5.Vector.dist(crv[i + 1], crv[i + 2])
+        const nextP = crv[i + 1]
+        const nextnextP = crv[i + 2]
+        const l = p5.Vector.dist(nextP, nextnextP)
         for (let t = 0; t < l; t++) {
             x = curvePoint(crv[i].x, crv[i + 1].x, crv[i + 2].x, crv[i + 3].x, t / l)
             y = curvePoint(crv[i].y, crv[i + 1].y, crv[i + 2].y, crv[i + 3].y, t / l)
@@ -43,10 +45,10 @@ function makeCurve(crv) {
 
 
 function distToSegment(p, s, e) {
-    const segLength = p5.Vector.dist(s,e);
+    const segLength = p5.Vector.dist(s, e);
     if (segLength == 0) return p5.Vector.dist(p, s);
 
-    let t = ((p.x - s.x) * (e.x - s.x) + (p.y - s.y) * (e.y - s.y)) / (segLength*segLength);
+    let t = ((p.x - s.x) * (e.x - s.x) + (p.y - s.y) * (e.y - s.y)) / (segLength * segLength);
     t = max(0, min(1, t));
     return p5.Vector.dist(p, v(
         s.x + t * (e.x - s.x),
