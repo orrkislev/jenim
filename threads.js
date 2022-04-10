@@ -24,13 +24,13 @@ const bgColor = ['#969387', '#f0eee6', '#54635e']
 
 const BG = '#ffcf40'
 
-let initialThreadSize = 4
+let initialThreadSize = 3
 let threadSize = initialThreadSize
 
 function setup() {
     createCanvas(min(windowWidth, windowHeight), min(windowWidth, windowHeight));
     angleMode(DEGREES)
-    initialThreadSize = width/1000 * initialThreadSize
+    initialThreadSize = width / 1000 * initialThreadSize
     stitchColor = color(stitchColor)
     noLoop()
     noStroke()
@@ -44,28 +44,44 @@ async function makeImage() {
 
     fullPattern = new LayoutPattern([v(0, 0), v(width, 0), v(width, height), v(0, height)])
     denim = new Denim(fullPattern, denimColor)
-
-    denim.colorFunc = (clr, x, y) => {
-        const noiseVal = noise(x / 200, y / 200, 0.8)
-        if (noiseVal > 0.5) clr = lerpColor(clr, color(255), noiseVal + 0.2)
-        if (abs(x - 100) < initialThreadSize) return color(255)
-        if (x > 100 & x - 100 < 120) clr = lerpColor(clr, color(0), random(0, 0.3))
-        return clr
-    }
-    
+    denim.visibleWhite = 1
+    denim.rotate(180)
     await denim.draw()
 
-    return
-    // fill(0)
-    // for (let x=0;x<width;x+=3){
-    //     for (let y=0;y<height;y+=3){
-    //         burn(createVector(x,y),3,noise(x/200,y/200)*50)
-    //         await drawDot_empty()
-    //     }
-    // }
+    blendMode(DODGE)
+    fill(200,200,255,30)
+    noStroke()
+    rect(0,0,width,height)
+    blendMode(BLEND)
 
+    denim = new Denim(fullPattern, denimColor)
+    denim.colorFunc = (clr, x, y) => {
+        const noiseVal = noise(x / 200, y / 200, 0.8)
+        if (noiseVal > 0.5) clr = lerpColor(clr, color(255), noiseVal / 2)
+        return clr
+    }
+    denim.makeHole()
+
+    await denim.draw()
+    await denim.drawHoleStuff()
+    //await pocket()
+
+
+
+    noStroke()
+    resetMatrix()
+    p = get()
+    blendMode(SOFT_LIGHT)
+    image(p, 0, 0)
+    blendMode(BLEND)
+
+    addBG()
+    finishImage()
+}
+
+async function pocket() {
     // l = new LayoutPattern([v_rel(0.3, -0.1), v_rel(0.32, -0.12), v_rel(0.5, 0.5), v_rel(0.52, 0.52), v_rel(1.1, 0.7), v_rel(1.1, -0.1)])
-    l = new LayoutPattern([v_rel(-0.1,0.5), v_rel(.2, .2), v_rel(.7,.6), v_rel(1.1,0.3), v_rel(1.1,-0.1), v(-0.1,-0.1)])
+    l = new LayoutPattern([v_rel(-0.1, 0.5), v_rel(.2, .2), v_rel(.7, .6), v_rel(1.1, 0.3), v_rel(1.1, -0.1), v(-0.1, -0.1)])
     // l = new LayoutPattern([v_rel(0.6,-0.1),v_rel(0.7,0.5), v_rel(0.8,0.5), v_rel(0.7,-0.1)])
     await l.goAlong(async p => await burn(p, 70, 20))
     await l.goAlong(async p => await burn(p, 40, 20))
@@ -86,8 +102,8 @@ async function makeImage() {
     for (st of l.stitches()) {
         threadSize = initialThreadSize * 2
         for (let i = 0; i < 1; i += 0.3) {
-            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize*3, 40)
-            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize*2, 20)
+            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize * 3, 40)
+            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize * 2, 20)
         }
         await thread(st, stitchColor)
     }
@@ -106,8 +122,8 @@ async function makeImage() {
     l.offset(20)
     for (st of l.stitches()) {
         for (let i = 0; i < 1; i += 0.3) {
-            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize*3, 40)
-            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize*2, 20)
+            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize * 3, 40)
+            await burn(p5.Vector.lerp(st[0], st[1], i), threadSize * 2, 20)
         }
         await thread(st, stitchColor)
     }
@@ -117,16 +133,6 @@ async function makeImage() {
 
     l.offset(10)
     await l.goAlong(async p => await burn(p, 20, 10))
-
-    // noStroke()
-    // resetMatrix()
-    // p = get()
-    // blendMode(SOFT_LIGHT)
-    // image(p, 0, 0)
-    // blendMode(BLEND)
-
-    // addBG()
-    // finishImage()
 }
 
 function timeout(ms) {
@@ -168,7 +174,7 @@ async function dodge(p, size, force = 7) {
     stroke(200, 200, 255, force)
     // noStroke()
     // circle(p.x, p.y, size * random(0.4, 1))
-    await softBrush(p,size)
+    await softBrush(p, size)
     blendMode(BLEND)
 }
 
@@ -177,12 +183,12 @@ async function burn(p, size, force = 7) {
     stroke(30, 30, 90, force)
     // noStroke()
     // circle(p.x, p.y, size * random(0.4, 1))
-    await softBrush(p,size)
+    await softBrush(p, size)
     blendMode(BLEND)
 }
 async function softBrush(p, r) {
-    for (let i = 0; i < r*10; i++) {
-        const rr = random()*r/2
+    for (let i = 0; i < r * 10; i++) {
+        const rr = random() * r / 2
         const a = random(360)
         strokeWeight(random(2))
         await drawDot(p.copy().add(cos(a) * rr, sin(a) * rr))
