@@ -4,7 +4,7 @@ const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
 const natural = ['#ede8d3', '#fafaf7', '#fcfcfc']
 
 const warpColors = natural
-let stitchColor = gold[1]
+let stitchColor
 
 const BG = '#666'
 
@@ -13,10 +13,11 @@ let threadSize = initialThreadSize
 let globalColorFunc
 
 function setup() {
+    noiseSeed(99)
+    randomSeed(99)
     canvas = createCanvas(min(windowWidth * 0.61, windowHeight * 0.61), min(windowWidth, windowHeight));
     angleMode(DEGREES)
     initialThreadSize = width / 1000 * initialThreadSize
-    stitchColor = color('orange')
     noLoop()
     noStroke()
     noFill()
@@ -26,7 +27,7 @@ function setup() {
 async function makeImage() {
     background(BG)
 
-    denimColor = getBaseColor()
+    initBaseColor()
     globalColorFunc = choose(colorFuncs)
     const composition = choose(compositions)
     await composition()

@@ -22,11 +22,13 @@ class Denim {
         return this
     }
     calc(args = {}) {
+        initTimer()
         if (!this.warp) this.makeWarp()
         if (!this.weft) this.makeWeft()
         if (!args.dontTrim) this.trim()
         if (!args.dontUnravel) this.unravel()
         if (!args.dontAge) this.doAge()
+        print('calc denim',getTime())
         return this
     }
     async draw(args = {}) {
@@ -71,6 +73,7 @@ class Denim {
         for (const row of this.warp) {
             const threadColor = lerpColor(color(warpColors[0]), color(warpColors[1]), random())
             await thread(row, threadColor, 3)
+            await timeout(0);
         }
     }
     async extendWarps() {
@@ -83,6 +86,7 @@ class Denim {
                 const dir2 = p5.Vector.sub(row[row.length - 1], row[row.length - 2])
                 await franzim(row[row.length - 1], dir2, threadSize * random_in(this.warpExtensions))
             }
+            await timeout(0);
         }
     }
 
@@ -92,17 +96,15 @@ class Denim {
     // ---------------------------------------------------
     makeWeft() {
         // ------- FULL WEFT
-        const firstColumn = this.warp.map(row => row[0])
-        this.weft = [{ column: firstColumn, threadSize }]
+        this.weft = [{ column: this.warp.map(row => row[0]), threadSize }]
         const rowLength = crvLength(this.warp.reduce((a, b) => crvLength(a) > crvLength(b) ? a : b))
         for (let i = 0; i < rowLength; i += threadSize * random_in(weftSpacingMinMax)) {
-            let column = this.warp.map(row => placeOnCurve(row, i))
-            column = column.filter(a => a != false)
-            this.weft.push({ column, threadSize })
-
+            this.weft.push({ 
+                column: this.warp.map(row => placeOnCurve(row, i)).filter(a=>a!=false), 
+                threadSize })
             threadSize = initialThreadSize * random(1, 1.2)
         }
-
+        
         // ----- TWILL
         const threadColor = color(this.color)
         const brightColor = lerpColor(threadColor, color(255), this.visibleWhite)
@@ -121,14 +123,13 @@ class Denim {
             }
             return loops
         })
-
-
     }
     async drawWeft() {
         for (const col of this.weft) {
             for (const loop of col) {
                 await loop.draw()
             }
+            await timeout(0);
         }
     }
     hasWeftOn(p1) {
@@ -164,6 +165,7 @@ class Denim {
     // ---------------------------------------------------
 
     makeRips() {
+        initTimer()
         this.warpRips = []
         this.weftRips = []
 
@@ -175,7 +177,7 @@ class Denim {
                 if (noise(row[j].x / 200, row[j].y / 100, noiseZ) < 0.3) {
                     part.push(j)
                 } else {
-                    if (part.length > 1) {
+                    if (part.length > 2) {
                         const partCrv = part.map(p => row[p])
                         const l = crvLength(partCrv)
                         if (l > 50) {
@@ -224,12 +226,14 @@ class Denim {
             noise(p.x / 200, p.y / 100, noiseZ) >= 0.3
         )))
         this.hasRips = true
+        print('make rips - ',getTime())
         return this
     }
 
     async drawRips() {
         for (const rip of this.warpRips) {
             await franzim(rip.pos, rip.dir, rip.len)
+            await timeout(0);
         }
 
         for (const end of this.weftRips) {
@@ -260,8 +264,9 @@ class Denim {
                     ps.push(ps[ps.length - 1].copy().add(dir))
                 }
                 ps = makeCurve(ps)
-                await thread(ps, c, 8)
+                await thread(ps, c, 5)
             }
+            await timeout(0);
         }
 
         // fill(0)
@@ -298,16 +303,16 @@ class Denim {
         newPattern.ps = this.layoutPattern.getOffset(0)
         newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, random(6) * initialThreadSize))
         gh.fill(255, 30)
-        newPattern.ps = this.layoutPattern.getOffset(-45)
+        newPattern.ps = this.layoutPattern.getOffset(45)
         newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, random(6) * initialThreadSize))
 
         gh.fill(0, 30)
-        newPattern.ps = this.layoutPattern.getOffset(-7)
+        newPattern.ps = this.layoutPattern.getOffset(7)
         newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, random(9)) * initialThreadSize)
-        newPattern.ps = this.layoutPattern.getOffset(-40)
+        newPattern.ps = this.layoutPattern.getOffset(40)
         newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, random(9) * initialThreadSize))
 
-        newPattern.ps = this.layoutPattern.getOffset(-22)
+        newPattern.ps = this.layoutPattern.getOffset(22)
         newPattern.getCurve().forEach((p, i) => {
             const s = (sin(i * 8) + 1) / 2
             gh.fill(255 * s, 15)

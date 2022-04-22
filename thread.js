@@ -54,7 +54,6 @@ class Loop {
 async function thread(ps, clr, fluff = 1) {
     noFill()
     noStroke()
-
     let crv = ps.map(p => p.copy())
     if (ps.length < 10)
         crv = makeCurve(ps)
@@ -72,41 +71,54 @@ async function thread(ps, clr, fluff = 1) {
         ellipse(0, 0, threadSize * 0.9, threadSize * 0.54)
         pop()
     }
-
-    strokeWeight(1)
-    const arcPs = getEllipse(threadSize, threadSize, 45, 180, 360)
-    arcPs.forEach(p => p.y *= 0.6)
-    const twistK = random(-0.2, 0.2)
-    const c = neighborColor(clr)
-    for (let i = 0; i < crv.length - 1; i++) {
-        const dir = p5.Vector.sub(crv[i + 1], crv[i]).heading() + 90
-        const newPs = arcPs.map(p => p.copy())
-        newPs.forEach(p => p.y *= map(i, 0, crv.length, -1, 1))
-        newPs.forEach(p => p.rotate(dir))
-        newPs.forEach(p => p.add(crv[i]))
-        for (let pIndex = 0; pIndex < newPs.length; pIndex++) {
-            let val = getShadeAtVal(shade_round, i / crv.length) * 150
-            val += getShadeAtAngle(shade_round_shiny, pIndex * 7.5) * 0
-            val += (i % (10 + pIndex * twistK)) / (10 + pIndex * twistK) * 50
-            c.setAlpha(val * 0.2)
-            stroke(c)
-            await drawDot(newPs[pIndex])
-        }
-    }
+    // strokeWeight(1)
+    // const arcPs = getEllipse(threadSize, threadSize, 45, 180, 360)
+    // arcPs.forEach(p => p.y *= 0.6)
+    // const twistK = random(-0.2, 0.2)
+    // const c = neighborColor(clr)
+    // for (let i = 0; i < crv.length - 1; i++) {
+    //     const dir = p5.Vector.sub(crv[i + 1], crv[i]).heading() + 90
+    //     const newPs = arcPs.map(p => p.copy())
+    //     newPs.forEach(p => p.y *= map(i, 0, crv.length, -1, 1))
+    //     newPs.forEach(p => p.rotate(dir))
+    //     newPs.forEach(p => p.add(crv[i]))
+    //     for (let pIndex = 0; pIndex < newPs.length; pIndex++) {
+    //         let val = getShadeAtVal(shade_round, i / crv.length) * 150
+    //         val += getShadeAtAngle(shade_round_shiny, pIndex * 7.5) * 0
+    //         val += (i % (10 + pIndex * twistK)) / (10 + pIndex * twistK) * 50
+    //         c.setAlpha(val * 0.2)
+    //         stroke(c)
+    //         await drawDot(newPs[pIndex])
+    //     }
+    // }
 
     for (let i = 0; i < crv.length * fluff; i++) await tinyThread(choose(crv), clr)
+
 }
 
-async function tinyThread(p, clr, l = 1) {
+async function tinyThread2(p, clr, l = 1) {
     strokeWeight(0.5)
     noFill()
     const dir = p5.Vector.random2D().normalize()
     const lintLength = random(2, threadSize) * l
-    // clr.setAlpha(50)
+    clr.setAlpha(50)
     stroke(clr)
     for (let j = 0; j < lintLength; j++) {
         dir.rotate(radians(random(-15, 15)))
         p.add(dir)
         await drawDot(p)
     }
+}
+
+async function tinyThread(p, clr, l = 1) {
+    strokeWeight(0.5)
+    noFill()
+    clr.setAlpha(50)
+    stroke(clr)
+    beginShape()
+        curveVertex(p.x,p.y)
+        curveVertex(p.x+threadSize * random(-1,1)*l,p.y+threadSize * random(-1,1)*l)
+        curveVertex(p.x+threadSize * random(-1,1)*l,p.y+threadSize * random(-1,1)*l)
+        curveVertex(p.x+threadSize * random(-1,1)*l,p.y+threadSize * random(-1,1)*l)
+    endShape()
 }

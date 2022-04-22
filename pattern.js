@@ -92,10 +92,12 @@ class LayoutPattern2 extends PatternShape {
         this.graphics.beginShape()
         this.ps.forEach(p => this.graphics.vertex(p.x, p.y))
         this.graphics.endShape(CLOSE)
+        this.graphicsDensity = this.graphics.pixelDensity()
+        this.graphics.loadPixels()
     }
     pointInPattern(p) {
         if (!this.graphics) this.makeGraphics()
-        return alpha(this.graphics.get(p.x, p.y)) > 0
+        return this.graphics.pixels[round((p.y * this.graphicsDensity * width + p.x * this.graphicsDensity) * 4 * this.graphicsDensity)+3] > 0
     }
     getOffset(h) {
         let newPs = [...this.ps]
@@ -106,7 +108,7 @@ class LayoutPattern2 extends PatternShape {
             const dir1 = p5.Vector.sub(p2, p1)
             const dir2 = p5.Vector.sub(p2, p3)
             let angle = dir2.angleBetween(dir1)
-            if (angle<0) angle+=360
+            if (angle < 0) angle += 360
             dir2.rotate(angle / 2).setMag(h * initialThreadSize)
             return p5.Vector.add(p2, dir2)
         })
@@ -118,9 +120,9 @@ class LayoutPattern2 extends PatternShape {
         const stitches = []
         l1 *= initialThreadSize
         l2 *= initialThreadSize
-        for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2*random(0.9,1.2) : l2) {
+        for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2 * random(0.9, 1.2) : l2) {
             const p1 = placeOnCurve(crv, i)
-            i += handMade ? l1 * random(0.9,1.2) : l1
+            i += handMade ? l1 * random(0.9, 1.2) : l1
             const p2 = placeOnCurve(crv, i)
             stitches.push([p1, p2])
         }
@@ -158,13 +160,14 @@ class LayoutPattern2 extends PatternShape {
         if (!this.stitchType) return
         if (this.stitchType == stitchTypes.DOUBLE) {
             for (const d of this.stitchData) {
-                let stitches = this.stitches(-d, 10, 10)
+                let stitches = this.stitches(d, 10, 10)
                 for (let st of stitches) {
                     const weftLoop = denim.hasWeftOn(st[0])
                     if (weftLoop) {
                         const newLoop = new Loop(st, stitchColor, initialThreadSize * 2).wiggle().shadow()
                         newLoop.age = weftLoop.age
                         await newLoop.draw()
+                        await timeout(0);
                     }
                 }
             }

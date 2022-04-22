@@ -88,8 +88,10 @@ async function patchStitches(patch, colorStitch) {
             stitches = stitches.concat(patch.layoutPattern.stitches(6+random(9,12)*i, 5, 5,true))
         }
     }
-    for (const s of stitches)
+    for (const s of stitches){
         await new Loop(s, colorStitch).wiggle().shadow().draw()
+        await timeout(0);
+    }
 }
 
 

@@ -1,4 +1,4 @@
-allDots = 0
+let allDots = 0
 async function drawDot(p) {
     allDots++
     if (allDots % 20000 == 0) await timeout(0);

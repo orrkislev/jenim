@@ -46,15 +46,19 @@ const colorFuncs = [checkers, bleach_gradient, bleach_large, bleach_noise, paint
 
 
 function applyColorFunc(denim,colorFunc){
+    initTimer()
     if (colorFunc)
+        offsetPosX = random()*3
+        offsetPosY = random()*3
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {
                     const p = loop.ps[0]
-                    loop.color = colorFunc(loop.color,p.x,p.y)
+                    loop.color = colorFunc(loop.color,p.x+offsetPosX,p.y+offsetPosY)
                 }
             })
         })
+    print('applyColorFunc - ',getTime())
 }
 
 
@@ -62,14 +66,17 @@ function applyColorFunc(denim,colorFunc){
 
 
 
-const getBaseColor = ()=>{
+const initBaseColor = ()=>{
     const r = random()
     if (r<0.7){
-        return makeColor(random(200,240))   // indigo
+        stitchColor = color('orange')
+        denimColor =  makeColor(random(200,240))   // indigo
     } else if (r<0.8){
-        return makeColor(0,0,0)             // black
+        stitchColor = color(255)
+        denimColor = makeColor(0,0,0)             // black
     } else {
-        return makeColor(random(360))       // random color
+        stitchColor = color(255)
+        denimColor =  makeColor(random(360))       // random color
     }
 }
 

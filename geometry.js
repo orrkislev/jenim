@@ -52,9 +52,9 @@ function crvLength(crv) {
 }
 
 function placeOnCurve(crv,d){
-    l = 0
+    let l = 0
     for (let i=0;i<crv.length-1;i++){
-        l += p5.Vector.dist(crv[i], crv[i+1])
+        l += sqrt((crv[i].x - crv[i+1].x) ** 2 + (crv[i].y - crv[i+1].y) ** 2)
         if (l>=d) return crv[i]
     }
     return false
