@@ -46,10 +46,9 @@ const colorFuncs = [checkers, bleach_gradient, bleach_large, bleach_noise, paint
 
 
 function applyColorFunc(denim,colorFunc){
-    initTimer()
-    if (colorFunc)
-        offsetPosX = random()*3
-        offsetPosY = random()*3
+    if (colorFunc){
+        const offsetPosX = random()*3
+        const offsetPosY = random()*3
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {
@@ -58,7 +57,7 @@ function applyColorFunc(denim,colorFunc){
                 }
             })
         })
-    print('applyColorFunc - ',getTime())
+    }
 }
 
 

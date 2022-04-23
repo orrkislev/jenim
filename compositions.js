@@ -1,4 +1,4 @@
-const compositions = [hem, halfsVertical, withPocket]
+const compositions = [hem, halfsVertical, withPocket, patches]
 
 async function hem() {
     pattern = new SquarePatternShape(0, 0, width, height * 0.7)

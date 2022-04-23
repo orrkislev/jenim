@@ -26,7 +26,7 @@ class Loop {
     }
     wiggle() {
         const p1 = this.ps[0]
-        const p2 = this.ps[this.ps.length-1]
+        const p2 = this.ps[this.ps.length - 1]
         const mid = p5.Vector.add(p1, p2).div(2)
         const dir = p5.Vector.sub(p1, p2).rotate(90).normalize().mult(p5.Vector.dist(p1, p2) * random(-.05, .05))
         mid.add(dir)
@@ -51,6 +51,8 @@ class Loop {
     }
 }
 
+let t1 = 0
+
 async function thread(ps, clr, fluff = 1) {
     noFill()
     noStroke()
@@ -60,17 +62,18 @@ async function thread(ps, clr, fluff = 1) {
     fill(clr)
     crv.forEach(p => circle(p.x, p.y, threadSize))
 
-    noStroke()
-    clr.setAlpha(80)
-    fill(clr)
-    for (let i = 0; i < crv.length - 1; i++) {
-        push()
-        const dir = p5.Vector.sub(crv[i + 1], crv[i]).heading() + 90
-        translate(crv[i].x, crv[i].y)
-        rotate(dir)
-        ellipse(0, 0, threadSize * 0.9, threadSize * 0.54)
-        pop()
-    }
+    // noStroke()
+    // clr.setAlpha(80)
+    // fill(clr)
+    // for (let i = 0; i < crv.length - 1; i++) {
+    //     push()
+    //     const dir = p5.Vector.sub(crv[i + 1], crv[i]).heading() + 90
+    //     translate(crv[i].x, crv[i].y)
+    //     rotate(dir)
+    //     ellipse(0, 0, threadSize * 0.9, threadSize * 0.54)
+    //     pop()
+    // }
+
     // strokeWeight(1)
     // const arcPs = getEllipse(threadSize, threadSize, 45, 180, 360)
     // arcPs.forEach(p => p.y *= 0.6)
@@ -92,8 +95,13 @@ async function thread(ps, clr, fluff = 1) {
     //     }
     // }
 
+    initTimer()
+    strokeWeight(0.5)
+    noFill()
+    clr.setAlpha(50)
+    stroke(clr)
     for (let i = 0; i < crv.length * fluff; i++) await tinyThread(choose(crv), clr)
-
+    t1 += getTime()
 }
 
 async function tinyThread2(p, clr, l = 1) {
@@ -111,14 +119,11 @@ async function tinyThread2(p, clr, l = 1) {
 }
 
 async function tinyThread(p, clr, l = 1) {
-    strokeWeight(0.5)
-    noFill()
-    clr.setAlpha(50)
-    stroke(clr)
+    
     beginShape()
-        curveVertex(p.x,p.y)
-        curveVertex(p.x+threadSize * random(-1,1)*l,p.y+threadSize * random(-1,1)*l)
-        curveVertex(p.x+threadSize * random(-1,1)*l,p.y+threadSize * random(-1,1)*l)
-        curveVertex(p.x+threadSize * random(-1,1)*l,p.y+threadSize * random(-1,1)*l)
+    curveVertex(p.x, p.y)
+    curveVertex(p.x + threadSize * random(-1, 1) * l, p.y + threadSize * random(-1, 1) * l)
+    curveVertex(p.x + threadSize * random(-1, 1) * l, p.y + threadSize * random(-1, 1) * l)
+    curveVertex(p.x + threadSize * random(-1, 1) * l, p.y + threadSize * random(-1, 1) * l)
     endShape()
 }

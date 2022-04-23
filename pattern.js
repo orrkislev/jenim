@@ -83,6 +83,10 @@ class PatternShape {
     }
 }
 
+const p2i = (x, y, d) => {
+    return ((round(x) - 1 / d) * d + ((round(y) - 1 / d) * d) * (round(width) * d)) * 4
+}
+
 class LayoutPattern2 extends PatternShape {
     constructor(ps) {
         super(ps)
@@ -97,7 +101,13 @@ class LayoutPattern2 extends PatternShape {
     }
     pointInPattern(p) {
         if (!this.graphics) this.makeGraphics()
-        return this.graphics.pixels[round((p.y * this.graphicsDensity * width + p.x * this.graphicsDensity) * 4 * this.graphicsDensity)+3] > 0
+        // image(this.graphics,0,0)
+        // exit()
+        // const i = round((p.y * this.graphicsDensity * width + p.x * this.graphicsDensity) * 4 * this.graphicsDensity) + 3
+        // if (this.graphics.pixels[i] != alpha(this.graphics.get(p.x,p.y))) print(p.x,p.y,i)
+        const i = p2i(p.x, p.y, this.graphicsDensity)
+        return this.graphics.pixels[i + 3] > 0
+        return alpha(this.graphics.get(p.x, p.y)) > 0
     }
     getOffset(h) {
         let newPs = [...this.ps]
@@ -124,7 +134,7 @@ class LayoutPattern2 extends PatternShape {
             const p1 = placeOnCurve(crv, i)
             i += handMade ? l1 * random(0.9, 1.2) : l1
             const p2 = placeOnCurve(crv, i)
-            stitches.push([p1, p2])
+            if (p1 && p2) stitches.push([p1, p2])
         }
         return stitches
     }

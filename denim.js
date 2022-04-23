@@ -16,19 +16,18 @@ class Denim {
         this.warpExtensions = [5, 15]
         this.age = age
         this.rotation = 0
+        this.ripNoiseZ = random(1000)
     }
     rotate(r) {
         this.rotation = r
         return this
     }
     calc(args = {}) {
-        initTimer()
         if (!this.warp) this.makeWarp()
         if (!this.weft) this.makeWeft()
         if (!args.dontTrim) this.trim()
         if (!args.dontUnravel) this.unravel()
         if (!args.dontAge) this.doAge()
-        print('calc denim',getTime())
         return this
     }
     async draw(args = {}) {
@@ -131,6 +130,7 @@ class Denim {
             }
             await timeout(0);
         }
+        print(t1)
     }
     hasWeftOn(p1) {
         for (const column of this.weft) {
@@ -164,8 +164,11 @@ class Denim {
     // -------------  R I P S ----------------------------
     // ---------------------------------------------------
 
+    pointInRip(p){
+        return noise(ripNoiseScale[0] * p.x / width, ripNoiseScale[1] * p.y / height, this.ripNoiseZ) < 0.3
+    }
+
     makeRips() {
-        initTimer()
         this.warpRips = []
         this.weftRips = []
 
@@ -174,7 +177,7 @@ class Denim {
             const row = this.warp[i]
             let part = []
             for (let j = 0; j < row.length; j++) {
-                if (noise(row[j].x / 200, row[j].y / 100, noiseZ) < 0.3) {
+                if (this.pointInRip(row[j])) {
                     part.push(j)
                 } else {
                     if (part.length > 2) {
@@ -212,7 +215,7 @@ class Denim {
 
         let waitForRip = true
         this.weft.forEach(col => col.forEach((loop, loopIndex) => {
-            const inHole = loop.ps.filter(p => noise(p.x / 200, p.y / 100, noiseZ) >= 0.3).length > 0
+            const inHole = loop.ps.filter(p => !this.pointInRip(p)).length > 0
             if ((inHole && waitForRip) || (!inHole && !waitForRip)) {
                 this.weftRips.push({
                     pos: loop.ps.filter(a=>a!=null)[0],
@@ -222,11 +225,8 @@ class Denim {
             }
         }))
 
-        this.weft.forEach(col => col.forEach(loop => loop.ps = loop.ps.filter(p =>
-            noise(p.x / 200, p.y / 100, noiseZ) >= 0.3
-        )))
+        this.weft.forEach(col => col.forEach(loop => loop.ps = loop.ps.filter(p => !this.pointInRip(p) )))
         this.hasRips = true
-        print('make rips - ',getTime())
         return this
     }
 
@@ -236,6 +236,7 @@ class Denim {
             await timeout(0);
         }
 
+        let counter=0
         for (const end of this.weftRips) {
             let c = color(this.color)
             this.weft.forEach(col => col.forEach(loop => loop.ps.forEach(p => {
@@ -266,7 +267,7 @@ class Denim {
                 ps = makeCurve(ps)
                 await thread(ps, c, 5)
             }
-            await timeout(0);
+            if (counter++ %10==0) await timeout(0);
         }
 
         // fill(0)

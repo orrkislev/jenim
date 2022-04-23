@@ -84,8 +84,8 @@ async function patchStitches(patch, colorStitch) {
         stitches = crossStitches2(patch.layoutPattern, 20, [ 15,2,])
     } else {
         stitches = patch.layoutPattern.stitches(6, 5, 5,true)
-        for (let i=1;i<15;i++){
-            stitches = stitches.concat(patch.layoutPattern.stitches(6+random(9,12)*i, 5, 5,true))
+        for (let i=1;i<random(2,10);i++){
+            stitches = stitches.concat(patch.layoutPattern.stitches(6+random(5,40), 5, 5,true))
         }
     }
     for (const s of stitches){
@@ -122,6 +122,7 @@ function crossStitches2(pattern,l, stitchPattern){
     const stitches = []
     for (let i=0;i<totalLength;i+=stitchPattern.rotate()){
         const p1 = placeOnCurve(crv,i)
+        if (!p1) continue
         const dir = p5.Vector.sub(pattern.center(),p1).setMag(random(.9,1.1)*l/2)
         const p2 = p5.Vector.add(p1,dir)
         const p3 = p5.Vector.add(p1,dir.mult(-1))
