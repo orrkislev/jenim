@@ -32,6 +32,7 @@ class Denim {
     }
     async draw(args = {}) {
         threadSize = initialThreadSize
+        if (args.withBehind) await this.drawBehind()
         if (!args.dontWarp) await this.drawWarp()
         if (!args.dontWeft) await this.drawWeft()
         if (!args.dontFringe) await this.extendWarps()
@@ -248,13 +249,14 @@ class Denim {
             if (random() < 0.5) {
                 stroke(c)
                 for (let a = 0; a < random(5, 15); a++) {
-                    const start = end.pos.copy()
-                    const dir = p5.Vector.random2D()
-                    for (let i = 0; i < random(5, 80); i++) {
-                        start.add(dir)
-                        dir.rotate(random(-5, 5))
-                        await drawDot(start)
-                    }
+                    await tinyThread(end.pos, c, random(3,10))
+                    // const start = end.pos.copy()
+                    // const dir = p5.Vector.random2D()
+                    // for (let i = 0; i < random(5, 80); i++) {
+                    //     start.add(dir)
+                    //     dir.rotate(random(-5, 5))
+                    //     await drawDot(start)
+                    // }
                 }
             } else {
                 let ps = [end.pos]
@@ -264,10 +266,10 @@ class Denim {
                     dir.rotate(random(-25, 25))
                     ps.push(ps[ps.length - 1].copy().add(dir))
                 }
-                ps = makeCurve(ps)
+                // ps = makeCurve(ps)
                 await thread(ps, c, 5)
             }
-            if (counter++ %10==0) await timeout(0);
+            if (counter++ %100==0) await timeout(0);
         }
 
         // fill(0)
@@ -334,5 +336,14 @@ class Denim {
         })
         this.layoutPattern.setStitches(stitchTypes.DOUBLE, [7, 40])
         return this
+    }
+
+    async drawBehind(){
+        const behind = new Denim(this.layoutPattern,this.color,0).rotate(this.rotation-180)
+        behind.visibleWhite = 1
+        behind.darkness = 0
+        behind.pointInRip = (p)=>!this.pointInRip(p)
+        behind.calc()
+        await behind.draw({ dontFringe:true })
     }
 }

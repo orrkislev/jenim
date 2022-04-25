@@ -93,16 +93,16 @@ async function patches() {
     denim = new Denim(pattern, denimColor).rotate(random(360)).calc().makeRips()
     applyColorFunc(denim, globalColorFunc)
 
-    patch = roundPatch(200, v_rel(0.5,0.5), denimColor)
+    patch = roundPatch(random(30,100), v_rel(random(.2,.8),random(.2,.8)), denimColor)
+    applyPatchShadow(patch)
     applyPatch3dEffect(patch,denim)
 
+    await denim.draw({ dontFringe: random()<0.5, withBehind:true})
+    await patch.draw({ dontFringe: random()<0.5 })
+    await patchStitches(patch)
 
-    await denim.draw({ dontFringe: true })
-    await patch.draw({ dontFringe: true })
-    await patchStitches(patch, color(0))
 
-
-    embColor = color(0)
+    // embColor = color(0)
     // const r = height * 0.25
     // for (let i = 0; i < r; i+=3) {
     //     const w = sqrt(r ** 2 - (r - i) ** 2)

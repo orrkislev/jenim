@@ -38,7 +38,13 @@ const painters = (clr,x,y)=>{
     return clr
 }
 
-const colorFuncs = [checkers, bleach_gradient, bleach_large, bleach_noise, painters]
+let globalColorFunc = null
+const colorFuncs = [checkers, bleach_gradient, bleach_large, bleach_noise, painters, null]
+function initColorFunc(){
+    const r = random()
+    if (r<0.5) globalColorFunc = null
+    else globalColorFunc = choose(colorFuncs)
+}
 
 
 
@@ -70,12 +76,15 @@ const initBaseColor = ()=>{
     if (r<0.7){
         stitchColor = color('orange')
         denimColor =  makeColor(random(200,240))   // indigo
+        patchStitchColor = choose([color(255,0,0),color(0),color(255)])
     } else if (r<0.8){
         stitchColor = color(255)
         denimColor = makeColor(0,0,0)             // black
+        patchStitchColor = color(255)
     } else {
         stitchColor = color(255)
         denimColor =  makeColor(random(360))       // random color
+        patchStitchColor = color(0)
     }
 }
 

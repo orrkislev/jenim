@@ -1,6 +1,6 @@
 function roundPatch(size, position = v_rel(0.5, 0.5), color) {
     let ps = []
-    ps = getEllipse(size * random(0.8, 1.2), size * random(0.8, 1.2), 45)
+    ps = getEllipse(size * random(0.8, 1.2) * threadSize, size * random(0.8, 1.2) * threadSize, 45)
     ps.forEach(p => p.mult(random(.8, 2)))
     ps.forEach(p => p.add(position))
     ps = makeCurve(ps)
@@ -77,19 +77,31 @@ function applyPatch3dEffect(patch,denim) {
 
 
 
-async function patchStitches(patch, colorStitch) {
+async function patchStitches(patch) {
     threadSize = initialThreadSize
     let stitches = []
-    if (random() < 0) {
-        stitches = crossStitches2(patch.layoutPattern, 20, [ 15,2,])
-    } else {
+    const r = choose([1,2,3])
+    if (r == 1) {
+        stitches = crossStitches(patch.layoutPattern, random(2,8), [15,1,1,1])
+    } else if (r==2) {
         stitches = patch.layoutPattern.stitches(6, 5, 5,true)
-        for (let i=1;i<random(2,10);i++){
-            stitches = stitches.concat(patch.layoutPattern.stitches(6+random(5,40), 5, 5,true))
+        if (random()<0.5)
+            stitches = stitches.concat(patch.layoutPattern.stitches(7, 5, 5,true))
+
+        if (random()<0.4)
+            for (let i=1;i<random(2,10);i++){
+                stitches = stitches.concat(patch.layoutPattern.stitches(6+random(5,40), 5, 5,true))
+            }
+    } else if (r==3) {
+        stitches = patch.layoutPattern.stitches(-6, 5, 5,true)
+        if (random()<0.5)
+            stitches = stitches.concat(patch.layoutPattern.stitches(-7, 5, 5,true))
+        if (random()<.7){
+            stitches = stitches.concat(patch.layoutPattern.stitches(-3, 5, 5,true))
         }
     }
     for (const s of stitches){
-        await new Loop(s, colorStitch).wiggle().shadow().draw()
+        await new Loop(s, patchStitchColor, initialThreadSize * 1.4).wiggle().shadow().draw()
         await timeout(0);
     }
 }
@@ -99,11 +111,13 @@ async function patchStitches(patch, colorStitch) {
 
 
 
-function crossStitches(pattern, h, l) {
-    let newPs = [...pattern.ps]
-    newPs.push(pattern.ps[0])
-    newPs = makeCurve(newPs)
-    newPs = newPs.filter((p, i) => i % l == 0)
+function crossStitches(pattern, h, stitchPattern) {
+    let crv = [...pattern.ps]
+    crv.push(pattern.ps[0])
+    crv = makeCurve(crv)
+    const newPs = []
+    for (let i=0;i<crv.length;i+=stitchPattern.rotate()) newPs.push(crv[i])
+    // newPs = newPs.filter((p, i) => i % l == 0)
     pattern.ps = newPs
     const offset1 = pattern.getOffset(h)
     const offset2 = pattern.getOffset(-h)

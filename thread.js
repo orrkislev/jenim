@@ -41,7 +41,7 @@ class Loop {
         if (this.withShadow)
             for (const p of makeCurve(this.ps)) await burn(p.copy().add(2, 0), this.threadSize * random(1, 3), 10)
         this.color = lerpColor(this.color, color(choose(natural)), this.age)
-        if (this.darkness != 0) this.color = neighborColor(this.color, 0, 0, -this.darkness * 360)
+        if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5*this.darkness*360,-.5*this.darkness*360)
         threadSize = this.threadSize
         await thread(this.ps, this.color, 3)
     }

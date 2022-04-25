@@ -10,27 +10,29 @@ const BG = '#666'
 
 let initialThreadSize = 3
 let threadSize = initialThreadSize
-let globalColorFunc = null
 
 function setup() {
-    if (windowWidth * (16/9) > windowHeight) canvas = createCanvas(windowHeight / (16/9), windowHeight);
-    else canvas = createCanvas(windowWidth,windowWidth * (16/9))
+    if (windowWidth * (16 / 9) > windowHeight) canvas = createCanvas(windowHeight / (16 / 9), windowHeight);
+    else canvas = createCanvas(windowWidth, windowWidth * (16 / 9))
     angleMode(DEGREES)
     noLoop()
     noStroke()
     noFill()
 
-    ripNoiseScale = [random(5,15), random(5,15)]
+    ripNoiseScale = [random(5, 15), random(5, 15)]
     initialThreadSize = width / 1000 * initialThreadSize
     makeImage()
 }
 
 async function makeImage() {
-    background(BG)
+    // for (let i = 0; i < 100; i++) {
+        background(BG)
 
-    initBaseColor()
-    globalColorFunc = choose(colorFuncs)
-    const composition = choose(compositions)
-    // composition = patches
-    await composition()
+        initBaseColor()
+        initColorFunc()
+        const composition = choose(compositions)
+        // composition = patches
+        await composition()
+        // saveCanvas(`img ${i}`, 'jpg')
+    // }
 }

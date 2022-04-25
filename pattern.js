@@ -101,13 +101,10 @@ class LayoutPattern2 extends PatternShape {
     }
     pointInPattern(p) {
         if (!this.graphics) this.makeGraphics()
-        // image(this.graphics,0,0)
         // exit()
-        // const i = round((p.y * this.graphicsDensity * width + p.x * this.graphicsDensity) * 4 * this.graphicsDensity) + 3
-        // if (this.graphics.pixels[i] != alpha(this.graphics.get(p.x,p.y))) print(p.x,p.y,i)
         const i = p2i(p.x, p.y, this.graphicsDensity)
         return this.graphics.pixels[i + 3] > 0
-        return alpha(this.graphics.get(p.x, p.y)) > 0
+        // return alpha(this.graphics.get(p.x, p.y)) > 0
     }
     getOffset(h) {
         let newPs = [...this.ps]
