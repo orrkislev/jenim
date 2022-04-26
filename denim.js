@@ -10,13 +10,14 @@ class Denim {
     constructor(layoutPattern, color, age=0.5) {
         this.layoutPattern = layoutPattern
         this.color = color
-        this.visibleWhite = 0.5
-        this.darkness = 0.6
+        this.visibleWhite = random(0.5,1)
+        this.darkness = random(0.2,0.7)
         this.noiseScale = random(200, 400)
         this.warpExtensions = [5, 15]
         this.age = age
         this.rotation = 0
         this.ripNoiseZ = random(1000)
+        this.ripThreshold = 0.3
     }
     rotate(r) {
         this.rotation = r
@@ -166,7 +167,7 @@ class Denim {
     // ---------------------------------------------------
 
     pointInRip(p){
-        return noise(ripNoiseScale[0] * p.x / width, ripNoiseScale[1] * p.y / height, this.ripNoiseZ) < 0.3
+        return noise(ripNoiseScale[0] * p.x / width, ripNoiseScale[1] * p.y / height, this.ripNoiseZ) < this.ripThreshold
     }
 
     makeRips() {
@@ -192,17 +193,21 @@ class Denim {
                                 newPs.push(p5.Vector.lerp(p1, p2, h / 5).add(0, random(-2, 4)))
                             newPs = makeCurve(newPs)
                             row.splice(part[0], part.length, ...newPs)
-                        }
+                        } 
                         if (l > 90) {
                             if (random() < 1) {
+                                let p1 = row[part[0]]
+                                let p2 = row[part[1]]
                                 this.warpRips.push({
-                                    pos: row[part[0]],
-                                    dir: p5.Vector.sub(row[part[1]], row[part[0]]),
+                                    pos: p1,
+                                    dir: p5.Vector.sub(p2, p1),
                                     len: l * random(0.5)
                                 })
+                                p1 = row[part[part.length - 1]]
+                                p2 = row[part[part.length - 2]]
                                 this.warpRips.push({
-                                    pos: row[part[part.length - 1]],
-                                    dir: p5.Vector.sub(row[part[part.length - 2]], row[part[part.length - 1]]),
+                                    pos: p1,
+                                    dir: p5.Vector.sub(p2, p1),
                                     len: l * random(0.5)
                                 })
                             }
@@ -238,6 +243,7 @@ class Denim {
         }
 
         let counter=0
+        this.weftRips = this.weftRips.filter(a=>random()<0.7)
         for (const end of this.weftRips) {
             let c = color(this.color)
             this.weft.forEach(col => col.forEach(loop => loop.ps.forEach(p => {
@@ -269,7 +275,7 @@ class Denim {
                 // ps = makeCurve(ps)
                 await thread(ps, c, 5)
             }
-            if (counter++ %100==0) await timeout(0);
+            if (counter++ %10==0) await timeout(0);
         }
 
         // fill(0)

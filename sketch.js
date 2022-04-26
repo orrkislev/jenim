@@ -26,13 +26,16 @@ function setup() {
 
 async function makeImage() {
     // for (let i = 0; i < 100; i++) {
-        background(BG)
+        // randomSeed(Math.random()*10000)
+        // noiseSeed(Math.random()*10000)
+        // ripNoiseScale = [random(5, 15), random(5, 15)]
 
+        background(BG)
         initBaseColor()
         initColorFunc()
         const composition = choose(compositions)
-        // composition = patches
         await composition()
+
         // saveCanvas(`img ${i}`, 'jpg')
     // }
 }

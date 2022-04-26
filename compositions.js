@@ -1,4 +1,4 @@
-const compositions = [hem, halfsVertical, withPocket, patches]
+const compositions = [hem, halfsVertical, withPocket, patches,largeRips]
 
 async function hem() {
     pattern = new SquarePatternShape(0, 0, width, height * 0.7)
@@ -42,9 +42,9 @@ async function halfsVertical() {
 async function withPocket() {
     pattern = new SquarePatternShape(0, 0, width, height)
     pocketPattern = new LayoutPattern2([v(0, 0), v(120, 490), v(340, 570), v(580, 470), v(660, 0)]).fillet(12)
-    x = random(width / 2)
-    y = random(height / 2)
-    pocketPattern.ps.forEach(p => p.add(x, y))
+    // x = random(width / 2)
+    // y = random(height / 2)
+    // pocketPattern.ps.forEach(p => p.add(x, y))
 
     rotation = random(40)
     pocketPattern.rotate(rotation)
@@ -127,4 +127,18 @@ async function patches() {
 
     // for (let i=0;i<5;i++)
     //     await makePatch(patchTypes.ROUND, makeColor(random(200, 240), 255, 100))
+}
+
+async function largeRips(){
+    pattern = new SquarePatternShape(0, 0, width, height)
+    denim = new Denim(pattern, neighborColor(denimColor,0,0,-150)).rotate(random(360))
+    denim.visibleWhite = 1
+    denim.darkness = .3
+    denim.calc()
+    await denim.draw({dontFringe:true})
+
+    denim = new Denim(pattern, denimColor).rotate(random(360))
+    denim.ripThreshold = 0.5
+    denim.calc().makeRips()
+    await denim.draw()
 }
