@@ -41,9 +41,14 @@ const painters = (clr,x,y)=>{
 let globalColorFunc = null
 const colorFuncs = [checkers, bleach_gradient, bleach_large, bleach_noise, painters, null]
 function initColorFunc(){
-    const r = random()
+    let r = random()
     if (r<0.5) globalColorFunc = null
-    else globalColorFunc = choose(colorFuncs)
+    else{
+        r = random()
+        if (r<0.1) globalColorFunc = painters
+        if (r<0.2) globalColorFunc = checkers
+        else globalColorFunc = choose([bleach_gradient,bleach_large,bleach_noise])
+    }
 }
 
 
