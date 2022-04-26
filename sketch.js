@@ -19,7 +19,7 @@ function setup() {
     noStroke()
     noFill()
 
-    ripNoiseScale = [random(5, 15), random(5, 15)]
+    ripNoiseScale = [random(5, 10), random(5, 10)]
     initialThreadSize = width / 1000 * initialThreadSize
     makeImage()
 }
@@ -33,7 +33,7 @@ async function makeImage() {
         background(BG)
         initBaseColor()
         initColorFunc()
-        const composition = choose(compositions)
+        let composition = choose(compositions)
         await composition()
 
         // saveCanvas(`img ${i}`, 'jpg')

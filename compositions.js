@@ -1,4 +1,4 @@
-const compositions = [hem, halfsVertical, withPocket, patches,largeRips]
+const compositions = [hem, twohalfs, withPocket, patches, largeRips]
 
 async function hem() {
     pattern = new SquarePatternShape(0, 0, width, height * 0.7)
@@ -39,18 +39,43 @@ async function halfsVertical() {
     await denim_l.draw({ dontFringe: true })
 }
 
+async function twohalfs() {
+    pattern_l = new SquarePatternShape(width / 2 - height, -100, height, height + 200)
+    pattern_r = new SquarePatternShape(width / 2, -100, height, height + 200)
+    const r = random(-30,30)
+    pattern_r.rotateAround(v_rel(0.5, 0.5), r)
+    pattern_l.rotateAround(v_rel(0.5, 0.5), r)
+
+    denim_r = new Denim(pattern_r, denimColor).rotate(-10).calc().makeRips()
+    denim_l = new Denim(pattern_l, denimColor).rotate(10).calc().makeRips()
+    denim_l.age = 1.5
+    denim_r.age = 1.5
+
+    applyColorFunc(denim_r, globalColorFunc)
+    applyColorFunc(denim_l, globalColorFunc)
+
+    denim_l.foldedStitchings()
+    denim_l.dropShadowOn([denim_r])
+
+    await denim_r.draw({ dontFringe: true })
+    await denim_l.draw({ dontFringe: true })
+}
+
+
 async function withPocket() {
     pattern = new SquarePatternShape(0, 0, width, height)
     pocketPattern = new LayoutPattern2([v(0, 0), v(120, 490), v(340, 570), v(580, 470), v(660, 0)]).fillet(12)
-    // x = random(width / 2)
-    // y = random(height / 2)
-    // pocketPattern.ps.forEach(p => p.add(x, y))
+    const pocketCenter = pocketPattern.center()
+    pocketPattern.ps.forEach(p => p.sub(pocketCenter))
+    const x = random(width - pocketCenter.x)
+    const y = random(height - pocketCenter.y)
+    pocketPattern.ps.forEach(p => p.add(x, y))
 
     rotation = random(40)
     pocketPattern.rotate(rotation)
 
     denim = new Denim(pattern, denimColor).rotate(rotation - 10).calc()
-    pocket = new Denim(pocketPattern, denimColor).rotate(random(360))
+    pocket = new Denim(pocketPattern, denimColor).rotate(random(-60, 60))
     pocket.age = 0.2
     pocket.calc().makeRips()
 
@@ -93,12 +118,12 @@ async function patches() {
     denim = new Denim(pattern, denimColor).rotate(random(360)).calc().makeRips()
     applyColorFunc(denim, globalColorFunc)
 
-    patch = roundPatch(random(30,100), v_rel(random(.2,.8),random(.2,.8)), denimColor)
+    patch = roundPatch(random(30, 100), v_rel(random(.2, .8), random(.2, .8)), denimColor)
     applyPatchShadow(patch)
-    applyPatch3dEffect(patch,denim)
+    applyPatch3dEffect(patch, denim)
 
-    await denim.draw({ dontFringe: random()<0.5, withBehind:true})
-    await patch.draw({ dontFringe: random()<0.5 })
+    await denim.draw({ dontFringe: random() < 0.5, withBehind: true })
+    await patch.draw({ dontFringe: random() < 0.5 })
     await patchStitches(patch)
 
 
@@ -129,16 +154,21 @@ async function patches() {
     //     await makePatch(patchTypes.ROUND, makeColor(random(200, 240), 255, 100))
 }
 
-async function largeRips(){
+async function largeRips() {
     pattern = new SquarePatternShape(0, 0, width, height)
-    denim = new Denim(pattern, neighborColor(denimColor,0,0,-150)).rotate(random(360))
+    denim = new Denim(pattern, neighborColor(denimColor, 0, 0, -150)).rotate(random(360))
     denim.visibleWhite = 1
     denim.darkness = .3
     denim.calc()
-    await denim.draw({dontFringe:true})
 
-    denim = new Denim(pattern, denimColor).rotate(random(360))
-    denim.ripThreshold = 0.5
-    denim.calc().makeRips()
-    await denim.draw()
+    denim2 = new Denim(pattern, denimColor).rotate(random(360))
+    ripNoiseScale = [random(2,5),random(2,5)]
+    denim2.ripThreshold = random(.4,.6)
+    denim2.calc().makeRips()
+    applyColorFunc(denim2, globalColorFunc)
+
+    denim2.dropShadowOn([denim])
+
+    await denim.draw({ dontFringe: true })
+    await denim2.draw()
 }

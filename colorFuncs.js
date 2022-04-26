@@ -4,21 +4,22 @@ const checkers = (clr, x, y) => {
     }
     return clr
 }
-
 const bleach_gradient = (clr,x,y) => {
     clr = lerpColor(clr,color(255), 1-y/height)
     return clr
 }
-
 const bleach_noise = (clr,x,y) => {
     const v = noise(x/100,y/100,random(0.5))
     if (v<0.5) clr = lerpColor(clr,color(255),v+0.5)
     return clr 
 }
-
 const bleach_large = (clr,x,y)=>{
     val = y/height
     if (noise(x/200,y/200)<val) clr = lerpColor(clr,color(255),val)
+    return clr
+}
+const strips = (clr,x,y)=>{
+    if ((x+floor(y/3))%160<80) clr = lerpColor(clr,color(255),0.4)
     return clr
 }
 
@@ -47,7 +48,7 @@ function initColorFunc(){
         r = random()
         if (r<0.1) globalColorFunc = painters
         if (r<0.2) globalColorFunc = checkers
-        else globalColorFunc = choose([bleach_gradient,bleach_large,bleach_noise])
+        else globalColorFunc = choose([bleach_gradient,bleach_large,bleach_noise,strips])
     }
 }
 
