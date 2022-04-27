@@ -1,10 +1,17 @@
-const DRAW_WARP = true
-const warpSpacingMinMax = [0.8, 1.5]
-const weftSpacingMinMax = [0.8, 1]
+function initDenimParams(){
+    warpSpacingMinMax = [0.8, random(1,2)]
+    weftSpacingMinMax = [0.8, 1]
+    
+    startOffset = [2, 1, 0]
+    patternTop = [2]
+    patternBottom = [1]
 
-const startOffset = [2, 1, 0]//Array(round_random(1,3)).fill(0).map((a,i)=>i)             // [0,1,2]
-const patternTop = [2]//Array(round_random(1,3)).fill(0).map(a=>round_random(1,5))      // [2]
-const patternBottom = [1] //Array(round_random(1,3)).fill(0).map(a=>round_random(1,15))    // [1]
+    if (this.random()<0.1){
+        startOffset = Array(round_random(1,3)).fill(0).map((a,i)=>i) 
+        patternTop = Array(round_random(1,3)).fill(0).map(a=>round_random(1,5))
+        patternBottom = Array(round_random(1,3)).fill(0).map(a=>round_random(1,5))
+    }
+}
 
 class Denim {
     constructor(layoutPattern, color, age=0.5) {
@@ -17,7 +24,9 @@ class Denim {
         this.age = age
         this.rotation = 0
         this.ripNoiseZ = random(1000)
-        this.ripThreshold = 0.3
+        this.ripThreshold = random(.2,.4)
+        this.ripMin = random(30,100)
+        this.ripMax = random(this.ripMin,200)
     }
     rotate(r) {
         this.rotation = r
@@ -71,10 +80,11 @@ class Denim {
         this.warp = this.warp.map(row => makeCurve(row))
     }
     async drawWarp() {
+        let i=0
         for (const row of this.warp) {
             const threadColor = lerpColor(color(warpColors[0]), color(warpColors[1]), random())
             await thread(row, threadColor, 3)
-            await timeout(0);
+            if (i++%10==0) await timeout(0);
         }
     }
     async extendWarps() {
@@ -126,10 +136,12 @@ class Denim {
         })
     }
     async drawWeft() {
+        let i=0
         for (const col of this.weft) {
             for (const loop of col) {
                 await loop.draw()
             }
+            if (i++%10==0)
             await timeout(0);
         }
     }
@@ -190,14 +202,14 @@ class Denim {
                         const second = row[part[1]].copy()
                         const last = row[part[part.length - 1]].copy()
                         const secondToLast = row[part[part.length - 2]].copy()
-                        if (l > 50) {
+                        if (l > this.ripMin) {
                             let newPs = []
                             for (let h = 0; h <= 5; h++)
                                 newPs.push(p5.Vector.lerp(first, last, h / 5).add(0, random(-2, 4)))
                             newPs = makeCurve(newPs)
                             row.splice(part[0], part.length, ...newPs)
                         } 
-                        if (l > 90) {
+                        if (l > this.ripMax) {
                             if (random() < 1) {
                                 this.warpRips.push({
                                     pos: first,
@@ -236,8 +248,10 @@ class Denim {
     }
 
     async drawRips() {
+        let i=0
         for (const rip of this.warpRips) {
             await franzim(rip.pos, rip.dir, rip.len)
+            if (i++%10==0)
             await timeout(0);
         }
 
@@ -274,7 +288,7 @@ class Denim {
                 // ps = makeCurve(ps)
                 await thread(ps, c, 5)
             }
-            if (counter++ %10==0) await timeout(0);
+            if (counter++ %30==0) await timeout(0);
         }
 
         // fill(0)

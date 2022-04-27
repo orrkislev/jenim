@@ -23,16 +23,17 @@ function setup() {
     initialThreadSize = width / 1000 * initialThreadSize
     makeImage()
 }
-
+m
 async function makeImage() {
     // for (let i = 0; i < 100; i++) {
         // randomSeed(Math.random()*10000)
         // noiseSeed(Math.random()*10000)
         // ripNoiseScale = [random(5, 15), random(5, 15)]
-
-        background(BG)
+        initDenimParams()
         initBaseColor()
         initColorFunc()
+        
+        background(BG)
         let composition = choose(compositions)
         await composition()
 

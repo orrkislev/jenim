@@ -67,7 +67,7 @@ async function withPocket() {
     pocketPattern = new LayoutPattern2([v(0, 0), v(120, 490), v(340, 570), v(580, 470), v(660, 0)]).fillet(12)
     const pocketCenter = pocketPattern.center()
     pocketPattern.ps.forEach(p => p.sub(pocketCenter))
-    const x = random(width - pocketCenter.x)
+    const x = random(width)
     const y = random(height - pocketCenter.y)
     pocketPattern.ps.forEach(p => p.add(x, y))
 

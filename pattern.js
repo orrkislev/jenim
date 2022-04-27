@@ -174,9 +174,9 @@ class LayoutPattern2 extends PatternShape {
                         const newLoop = new Loop(st, stitchColor, initialThreadSize * 2).wiggle().shadow()
                         newLoop.age = weftLoop.age
                         await newLoop.draw()
-                        await timeout(0);
                     }
                 }
+                await timeout(0);
             }
         }
     }
