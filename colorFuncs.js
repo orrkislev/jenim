@@ -9,7 +9,7 @@ const bleach_gradient = (clr,x,y) => {
     return clr
 }
 const bleach_noise = (clr,x,y) => {
-    const v = noise(x/100,y/100,random(0.5))
+    const v = noise(x/100,y/100,random(0.3))
     if (v<0.5) clr = lerpColor(clr,color(255),v+0.5)
     return clr 
 }
@@ -24,30 +24,40 @@ const strips = (clr,x,y)=>{
 }
 
 let paintersLayers = null
-const painters = (clr,x,y)=>{
-    if (!paintersLayers){
-        paintersLayers = []
-        for (let i=0;i<10;i++)
-            paintersLayers.push({
-                s:random(50,200), val:random(.2,.5), z:random(10), color: makeColor(random(360),360,random(360,360))
-            })
-    }
-
+const initPainters = ()=>{
+    paintersLayers = []
+    for (let i=0;i<2;i++)
+        paintersLayers.push({
+            s:random(50,200), val:random(.2,.5), z:random(10), color: makeColor(random(0,120),360,random(120,360))
+        })
+}
+const painters1 = (clr,x,y)=>{
     for (paintersLayer of paintersLayers){
-        if (noise(x/paintersLayer.s,y/paintersLayer.s,paintersLayer.z)<paintersLayer.val) clr = lerpColor(clr,paintersLayer.color,0.25)
+        if (noise(x/paintersLayer.s,y/paintersLayer.s,paintersLayer.z)<paintersLayer.val) clr = lerpColor(clr,paintersLayer.color,1-y/height)
+    }
+    return clr
+}
+const painters2 = (clr,x,y)=>{
+    for (paintersLayer of paintersLayers){
+        clr = lerpColor(clr,paintersLayer.color,noise(x/paintersLayer.s,y/paintersLayer.s,paintersLayer.z)*(1-y/height))
     }
     return clr
 }
 
+
+
 let globalColorFunc = null
-const colorFuncs = [checkers, bleach_gradient, bleach_large, bleach_noise, painters, null]
 function initColorFunc(){
     let r = random()
-    if (r<0.5) globalColorFunc = null
+    if (r<0.6) globalColorFunc = null
     else{
         r = random()
-        if (r<0.1) globalColorFunc = painters
-        if (r<0.2) globalColorFunc = checkers
+        if (r<0.05) {
+            if (random()<0.5) globalColorFunc = painters1
+            else globalColorFunc = painters2
+            initPainters()
+        }
+        if (r<0.1) globalColorFunc = checkers
         else globalColorFunc = choose([bleach_gradient,bleach_large,bleach_noise,strips])
     }
 }
@@ -59,8 +69,8 @@ function initColorFunc(){
 
 function applyColorFunc(denim,colorFunc){
     if (colorFunc){
-        const offsetPosX = random()*3
-        const offsetPosY = random()*3
+        const offsetPosX = random(-15,15)
+        const offsetPosY = random(-15,15)
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {
@@ -81,7 +91,7 @@ const initBaseColor = ()=>{
     const r = random()
     if (r<0.7){
         stitchColor = color('orange')
-        denimColor =  makeColor(random(200,240))   // indigo
+        denimColor =  makeColor(random(200,250),360,random(180,360))   // indigo
         patchStitchColor = choose([color(255,0,0),color(0),color(255)])
     } else if (r<0.8){
         stitchColor = color(255)
@@ -89,7 +99,7 @@ const initBaseColor = ()=>{
         patchStitchColor = color(255)
     } else {
         stitchColor = color(255)
-        denimColor =  makeColor(random(360))       // random color
+        denimColor =  makeColor(random(0,120))       // random color
         patchStitchColor = color(0)
     }
 }

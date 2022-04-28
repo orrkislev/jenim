@@ -87,9 +87,8 @@ async function patchStitches(patch) {
         stitches = patch.layoutPattern.stitches(6, 5, 5,true)
         if (random()<0.5)
             stitches = stitches.concat(patch.layoutPattern.stitches(7, 5, 5,true))
-
         if (random()<0.4)
-            for (let i=1;i<random(2,10);i++){
+            for (let i=1;i<random(3);i++){
                 stitches = stitches.concat(patch.layoutPattern.stitches(6+random(5,40), 5, 5,true))
             }
     } else if (r==3) {

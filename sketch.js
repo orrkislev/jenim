@@ -14,6 +14,8 @@ let threadSize = initialThreadSize
 function setup() {
     if (windowWidth * (16 / 9) > windowHeight) canvas = createCanvas(windowHeight / (16 / 9), windowHeight);
     else canvas = createCanvas(windowWidth, windowWidth * (16 / 9))
+    print(canvas)
+    // drawingContext = canvas.canvas.getContext('2d', { alpha: false });
     angleMode(DEGREES)
     noLoop()
     noStroke()
@@ -23,7 +25,7 @@ function setup() {
     initialThreadSize = width / 1000 * initialThreadSize
     makeImage()
 }
-m
+
 async function makeImage() {
     // for (let i = 0; i < 100; i++) {
         // randomSeed(Math.random()*10000)

@@ -1,4 +1,4 @@
-// const random = (a = 1, b = 0) => Math.random() * (b - a) + a
+const random = (a = 1, b = 0) => Math.random() * (b - a) + a
 const choose = (arr) => arr[Math.floor(random(arr.length))]
 const round_random = (a, b) => Math.floor(random(a, b + 1))
 const random_in = (minMax) => random(minMax[0], minMax[1])

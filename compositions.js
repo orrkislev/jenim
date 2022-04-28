@@ -1,8 +1,9 @@
 const compositions = [hem, twohalfs, withPocket, patches, largeRips]
 
 async function hem() {
-    pattern = new SquarePatternShape(0, 0, width, height * 0.7)
-    pattern2 = new SquarePatternShape(-100, height * 0.7, width + 200, height * 0.3 + 100)
+    const hemPos = random(.2,.9)
+    pattern = new SquarePatternShape(0, 0, width, height * hemPos)
+    pattern2 = new SquarePatternShape(-100, height * hemPos, width + 200, height * (1-hemPos) + 100)
 
     denim = new Denim(pattern, denimColor).calc().makeRips()
     denim2 = new Denim(pattern2, denimColor).rotate(180)
@@ -18,25 +19,6 @@ async function hem() {
 
     await denim.draw()
     await denim2.draw()
-}
-
-async function halfsVertical() {
-    pattern_l = new SquarePatternShape(-100, -100, width / 2 + 100, height + 200)
-    pattern_r = new SquarePatternShape(width / 2, -100, width / 2 + 100, height + 200)
-
-    denim_r = new Denim(pattern_r, denimColor).rotate(-10).calc().makeRips()
-    denim_l = new Denim(pattern_l, denimColor).rotate(10).calc().makeRips()
-    denim_l.age = 1.5
-    denim_r.age = 1.5
-
-    applyColorFunc(denim_r, globalColorFunc)
-    applyColorFunc(denim_l, globalColorFunc)
-
-    denim_l.foldedStitchings()
-    denim_l.dropShadowOn([denim_r])
-
-    await denim_r.draw({ dontFringe: true })
-    await denim_l.draw({ dontFringe: true })
 }
 
 async function twohalfs() {
@@ -89,36 +71,12 @@ async function withPocket() {
     await pocket.draw({ dontFringe: true })
 }
 
-async function quarters() {
-    const pattern_tl = new SquarePatternShape(0, 0, width / 2, height / 2)
-    const pattern_tr = new SquarePatternShape(width / 2, 0, width / 2, height / 2)
-    const pattern_bl = new SquarePatternShape(0, height / 2, width / 2, height / 2)
-    const pattern_br = new SquarePatternShape(width / 2, height / 2, width / 2, height / 2)
-
-    denimColor2 = neighborColor(denimColor, 0, 0, -360)
-
-    const denim_tl = new Denim(pattern_tl, denimColor).rotate(20).calc()
-    const denim_tr = new Denim(pattern_tr, denimColor2).rotate(-20).calc()
-    const denim_bl = new Denim(pattern_bl, denimColor2).rotate(-20).calc()
-    const denim_br = new Denim(pattern_br, denimColor).rotate(20).calc()
-
-    applyColorFunc(denim_tl, globalColorFunc)
-    applyColorFunc(denim_tr, globalColorFunc)
-    applyColorFunc(denim_bl, globalColorFunc)
-    applyColorFunc(denim_br, globalColorFunc)
-
-    await denim_tl.draw()
-    await denim_tr.draw()
-    await denim_bl.draw()
-    await denim_br.draw()
-}
-
 async function patches() {
     pattern = new SquarePatternShape(0, 0, width, height)
     denim = new Denim(pattern, denimColor).rotate(random(360)).calc().makeRips()
     applyColorFunc(denim, globalColorFunc)
 
-    patch = roundPatch(random(30, 100), v_rel(random(.2, .8), random(.2, .8)), denimColor)
+    patch = roundPatch(random(30, 250), v_rel(random(.2, .8), random(.2, .8)), denimColor)
     applyPatchShadow(patch)
     applyPatch3dEffect(patch, denim)
 
