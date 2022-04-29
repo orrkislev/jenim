@@ -156,7 +156,7 @@ async function withFringe() {
     if (vertical) pattern = new SquarePatternShape(-width/2, -height/2, width * (perc+0.5), height*2)
     else pattern = new SquarePatternShape(-width/2, -height/2, width*2, height*(perc+0.5))
     if (doRotation) pattern.rotateAround(v_rel(0.5, 0.5), 180)
-    denim = new Denim(pattern, denimColor).rotate(random(360)).calc()
+    denim = new Denim(pattern, denimColor).rotate(vertical ? 0 : 90).calc()
     denim.warpExtensions = [random(10, 50), random(50, 200)]
     denim.extendChance = random(.7,1)
     await denim.draw()
