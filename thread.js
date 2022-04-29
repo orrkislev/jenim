@@ -1,10 +1,11 @@
+const franzimDirOffset = random(360)
 async function franzim(pos, dir, l) {
     dir.setMag(3)
     let ps = [pos]
     for (let i = 0; i < l / 3; i++) {
         let h = dir.heading()
         const noiseVal = noise(ps[ps.length - 1].x / 20, ps[ps.length - 1].y / 20)
-        const angle2 = (noiseVal - 0.5) * 720
+        const angle2 = (noiseVal - 0.5) * 720 + franzimDirOffset
         h = lerp(h, angle2, 0.1)
         h = lerp(h, 90, 0.1)
         h += random(-5, 5)

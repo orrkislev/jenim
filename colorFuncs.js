@@ -52,12 +52,11 @@ function initColorFunc(){
     if (r<0.6) globalColorFunc = null
     else{
         r = random()
-        if (r<0.05) {
+        if (r<0.08) {
             if (random()<0.5) globalColorFunc = painters1
             else globalColorFunc = painters2
             initPainters()
-        }
-        if (r<0.1) globalColorFunc = checkers
+        } else if (r<0.13) globalColorFunc = checkers
         else globalColorFunc = choose([bleach_gradient,bleach_large,bleach_noise,strips])
     }
 }
@@ -69,8 +68,8 @@ function initColorFunc(){
 
 function applyColorFunc(denim,colorFunc){
     if (colorFunc){
-        const offsetPosX = random(-15,15)
-        const offsetPosY = random(-15,15)
+        const offsetPosX = random(-35,35)
+        const offsetPosY = random(-35,35)
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {
@@ -99,7 +98,7 @@ const initBaseColor = ()=>{
         patchStitchColor = color(255)
     } else {
         stitchColor = color(255)
-        denimColor =  makeColor(random(0,120))       // random color
+        denimColor =  makeColor(random(0,70))       // random color
         patchStitchColor = color(0)
     }
 }

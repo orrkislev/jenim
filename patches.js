@@ -8,7 +8,7 @@ function roundPatch(size, position = v_rel(0.5, 0.5), color) {
 }
 
 function rectPatch(color) {
-    const rectPattern = new SquarePatternShape(random(width), random(height), random(100, 200), random(100, 200))
+    const rectPattern = new SquarePatternShape(random(width), random(height), random(100, 400), random(100, 400))
     rectPattern.rotate(random(-5, 5))
     ps = rectPattern.ps
     return makePatch(ps, color)

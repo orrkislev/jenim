@@ -21,6 +21,7 @@ class Denim {
         this.darkness = random(0.2,0.7)
         this.noiseScale = random(200, 400)
         this.warpExtensions = [5, 15]
+        this.extendChance = 0.5
         this.age = age
         this.rotation = 0
         this.ripNoiseZ = random(1000)
@@ -89,11 +90,11 @@ class Denim {
     }
     async extendWarps() {
         for (const row of this.warp) {
-            if (random() < 0.5) {
+            if (random() < this.extendChance) {
                 const dir1 = p5.Vector.sub(row[0], row[1])
                 await franzim(row[0], dir1, threadSize * random_in(this.warpExtensions))
             }
-            if (random() < 0.5) {
+            if (random() < this.extendChance) {
                 const dir2 = p5.Vector.sub(row[row.length - 1], row[row.length - 2])
                 await franzim(row[row.length - 1], dir2, threadSize * random_in(this.warpExtensions))
             }
@@ -161,9 +162,9 @@ class Denim {
     // ---------------------------------------------------
     trim() {
         this.warp = this.warp.map(row => row.filter(p => this.layoutPattern.pointInPattern(p)))
-        this.warp = this.warp.map(row => row.filter(p => p.x>=-width*.1 && p.x <= width*1.1 && p.y>=-height*.1 && p.y<=height*1.1))
         this.warp = this.warp.filter(row => row.length > 1)
         this.weft = this.weft.map(col => col.filter(loop => loop.ps.filter(p => this.layoutPattern.pointInPattern(p)).length > 1))
+        this.warp = this.warp.map(row => row.filter(p => p.x>=-width*.1 && p.x <= width*1.1 && p.y>=-height*.1 && p.y<=height*1.1))
     }
     unravel() {
         this.weft.forEach(col => {

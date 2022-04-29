@@ -37,6 +37,7 @@ async function makeImage() {
         
         background(BG)
         let composition = choose(compositions)
+        // composition = withFringe
         await composition()
 
         // saveCanvas(`img ${i}`, 'jpg')
