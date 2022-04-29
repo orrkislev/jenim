@@ -150,24 +150,24 @@ async function withFringe() {
     denim.calc()
     await denim.draw({dontFringe:true})
 
-    const perc = random(.2, .8)
+    const perc = random(.5, .8)
     const vertical = random() < 0.5
     const doRotation = random()<0.5
-    if (vertical) pattern = new SquarePatternShape(0, 0, width * perc, height)
-    else pattern = new SquarePatternShape(0, 0, width, height*perc)
+    if (vertical) pattern = new SquarePatternShape(-width/2, -height/2, width * (perc+0.5), height*2)
+    else pattern = new SquarePatternShape(-width/2, -height/2, width*2, height*(perc+0.5))
     if (doRotation) pattern.rotateAround(v_rel(0.5, 0.5), 180)
     denim = new Denim(pattern, denimColor).rotate(random(360)).calc()
     denim.warpExtensions = [random(10, 50), random(50, 200)]
     denim.extendChance = random(.7,1)
     await denim.draw()
 
-    if (perc < 0.5) {
-        if (vertical) pattern = new SquarePatternShape(width * (1-perc*random(1,1.5)), 0, width,height)
-        else pattern = new SquarePatternShape(0, height*(1-perc*random(1,1.5)),width,height)
-        if (doRotation) pattern.rotateAround(v_rel(0.5, 0.5), 180)
-        denim = new Denim(pattern, denimColor).rotate(random(360)).calc()
-        denim.warpExtensions = [random(25, 50), random(100, 200)]
-        denim.extendChance = random(.7,1)
-        await denim.draw()
-    }
+    // if (perc < 0.5) {
+    //     if (vertical) pattern = new SquarePatternShape(width * (1-perc*random(1,1.5)), 0, width,height)
+    //     else pattern = new SquarePatternShape(0, height*(1-perc*random(1,1.5)),width,height)
+    //     if (doRotation) pattern.rotateAround(v_rel(0.5, 0.5), 180)
+    //     denim = new Denim(pattern, denimColor).rotate(random(360)).calc()
+    //     denim.warpExtensions = [random(25, 50), random(100, 200)]
+    //     denim.extendChance = random(.7,1)
+    //     await denim.draw()
+    // }
 }
