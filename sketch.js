@@ -8,7 +8,7 @@ let stitchColor
 
 const BG = '#666'
 
-let initialThreadSize = 3
+let initialThreadSize = random(2,3)
 let threadSize = initialThreadSize
 
 function setup() {
@@ -37,7 +37,7 @@ async function makeImage() {
         
         background(BG)
         let composition = choose(compositions)
-        // composition = withFringe
+        // composition = largeRips
         await composition()
 
         // saveCanvas(`img ${i}`, 'jpg')

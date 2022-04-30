@@ -132,7 +132,7 @@ async function largeRips() {
 
     denim2 = new Denim(pattern, denimColor).rotate(random(360))
     ripNoiseScale = [random(2, 5), random(2, 5)]
-    denim2.ripThreshold = random(.4, .6)
+    denim2.ripThreshold = random(.3, .6)
     denim2.calc().makeRips()
     applyColorFunc(denim2, globalColorFunc)
 

@@ -25,7 +25,7 @@ class Denim {
         this.age = age
         this.rotation = 0
         this.ripNoiseZ = random(1000)
-        this.ripThreshold = random(.2,.4)
+        this.ripThreshold = random(.1,.32)
         this.ripMin = random(30,100)
         this.ripMax = random(this.ripMin,200)
     }

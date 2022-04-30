@@ -1,5 +1,7 @@
 const checkers = (clr, x, y) => {
-    if ((x % 160 < 80 && y % 160 < 80) || (x % 160 > 80 && y % 160 > 80)) {
+    const gridSize = 120*initialThreadSize
+    const haldGridSize = 60*initialThreadSize
+    if ((x % gridSize < haldGridSize && y % gridSize < haldGridSize) || (x % gridSize > haldGridSize && y % gridSize > haldGridSize)) {
         clr = lerpColor(clr, color(0), 0.3)
     }
     return clr
@@ -9,17 +11,19 @@ const bleach_gradient = (clr,x,y) => {
     return clr
 }
 const bleach_noise = (clr,x,y) => {
-    const v = noise(x/100,y/100,random(0.3))
+    const noiseScale = 80*initialThreadSize
+    const v = noise(x/noiseScale,y/noiseScale,random(0.3))
     if (v<0.5) clr = lerpColor(clr,color(255),v+0.5)
     return clr 
 }
 const bleach_large = (clr,x,y)=>{
     val = y/height
-    if (noise(x/200,y/200)<val) clr = lerpColor(clr,color(255),val)
+    const noiseScale = 150 * initialThreadSize
+    if (noise(x/noiseScale,y/noiseScale)<val) clr = lerpColor(clr,color(255),val)
     return clr
 }
 const strips = (clr,x,y)=>{
-    if ((x+floor(y/3))%160<80) clr = lerpColor(clr,color(255),0.4)
+    if ((x+floor(y/3))%(120*initialThreadSize)<(60*initialThreadSize)) clr = lerpColor(clr,color(255),0.4)
     return clr
 }
 
