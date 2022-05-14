@@ -177,7 +177,7 @@ function makeOthers() {
     others = []
     otherArcs = []
     for (let otherIndex = 0; otherIndex < 3; otherIndex++) {
-        otherColor = choose(otherColors)
+        otherColor = R.random_choice(otherColors)
         otherSize = initialThreadSize * 4
         let x = floor(random(2,weft.length/2))
         let y = floor(random(2,warp.length/2))
@@ -244,7 +244,7 @@ async function thread(ps, clr) {
         }
     }
 
-    for (let i = 0; i < crv.length; i++) await tinyThread(choose(crv), clr)
+    for (let i = 0; i < crv.length; i++) await tinyThread(R.random_choice(crv), clr)
 }
 
 async function tinyThread(p, clr, l = 1) {

@@ -84,7 +84,7 @@ class PatternShape {
 }
 
 const p2i = (x, y, d) => {
-    return ((round(x) - 1 / d) * d + ((round(y) - 1 / d) * d) * (round(width) * d)) * 4
+    return ((round(x) - 1 / d) * d + ((round(y) - 1 / d) * d) * (round(baseWidth) * d)) * 4
 }
 
 class LayoutPattern2 extends PatternShape {
@@ -92,7 +92,7 @@ class LayoutPattern2 extends PatternShape {
         super(ps)
     }
     makeGraphics() {
-        this.graphics = createGraphics(width, height)
+        this.graphics = createGraphics(baseWidth, baseHeight)
         this.graphics.beginShape()
         this.ps.forEach(p => this.graphics.vertex(p.x, p.y))
         this.graphics.endShape(CLOSE)
@@ -127,9 +127,9 @@ class LayoutPattern2 extends PatternShape {
         const stitches = []
         l1 *= initialThreadSize
         l2 *= initialThreadSize
-        for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2 * random(0.9, 1.2) : l2) {
+        for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2 * R.random(0.9, 1.2) : l2) {
             const p1 = placeOnCurve(crv, i)
-            i += handMade ? l1 * random(0.9, 1.2) : l1
+            i += handMade ? l1 * R.random(0.9, 1.2) : l1
             const p2 = placeOnCurve(crv, i)
             if (p1 && p2) stitches.push([p1, p2])
         }
@@ -137,13 +137,13 @@ class LayoutPattern2 extends PatternShape {
     }
 
     dropShadowOn(denim) {
-        const shading = createGraphics(width, height)
+        const shading = createGraphics(baseWidth, baseHeight)
         shading.noStroke()
         shading.fill(0, 5)
         shading.beginShape()
         this.getCurve().forEach(p => shading.vertex(p.x, p.y))
         shading.endShape()
-        this.getCurve().forEach(p => shading.circle(p.x + 5, p.y + 5, threadSize * random(10)))
+        this.getCurve().forEach(p => shading.circle(p.x + 5, p.y + 5, threadSize * R.random(10)))
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {

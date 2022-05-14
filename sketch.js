@@ -7,22 +7,27 @@ const warpColors = natural
 let stitchColor
 
 const BG = '#666'
-
-let initialThreadSize = random(2,3)
-let threadSize = initialThreadSize
+const baseWidth = 1000
+const baseHeight = baseWidth * (16/9)
+let globalScale;
 
 function setup() {
+    noiseSeed(R.random_int(20000))
+
     if (windowWidth * (16 / 9) > windowHeight) canvas = createCanvas(windowHeight / (16 / 9), windowHeight);
     else canvas = createCanvas(windowWidth, windowWidth * (16 / 9))
-    print(canvas)
-    // drawingContext = canvas.canvas.getContext('2d', { alpha: false });
+
+    globalScale = width / baseWidth
+
     angleMode(DEGREES)
     noLoop()
     noStroke()
     noFill()
 
-    ripNoiseScale = [random(5, 10), random(5, 10)]
-    initialThreadSize = width / 1000 * initialThreadSize
+    ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
+    initialThreadSize = 3
+    // initialThreadSize = width / 1000 * initialThreadSize
+    threadSize = initialThreadSize
     makeImage()
 }
 
@@ -31,14 +36,16 @@ async function makeImage() {
         // randomSeed(Math.random()*10000)
         // noiseSeed(Math.random()*10000)
         // ripNoiseScale = [random(5, 15), random(5, 15)]
+        initThreadParams()
         initDenimParams()
         initBaseColor()
         initColorFunc()
         
         background(BG)
-        let composition = choose(compositions)
-        // composition = largeRips
+        let composition = R.random_choice(compositions)
+        // composition =twohalfs
         await composition()
+        print('done')
 
         // saveCanvas(`img ${i}`, 'jpg')
     // }

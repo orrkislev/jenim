@@ -2,7 +2,7 @@
 
 const random = (a = 1, b = 0) => fxrand() * (b - a) + a
 const choose = (arr) => arr[Math.floor(random(arr.length))]
-const getColor = () => choose(colors)
+const getColor = () => R.random_choice(colors)
 
 const pallete1 = ['#a7dfff', '#467194', '#b07967', '#78544c']
 const pallete2 = ['#fd0155', '#fa76c6']
@@ -105,7 +105,7 @@ function drawHole() {
         const xRange = s.getXRange(t)
         const threads = random(0,3)
         for (let j = 0; j < threads; j++) {
-            const pos = createVector(choose(xRange), y)
+            const pos = createVector(R.random_choice(xRange), y)
             pos.x += random(-2, 2)
             stroke(lerpColor(blu,whit,random()))
             const dir = p5.Vector.fromAngle(random(360))

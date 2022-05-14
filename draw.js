@@ -23,15 +23,15 @@ async function burn(p, size, force = 7) {
     blendMode(BURN)
     fill(30, 30, 90, force)
     noStroke()
-    circle(p.x, p.y, size * random(0.4, 1))
+    circle(p.x, p.y, size * R.random(0.4, 1))
     // await softBrush(p, size)
     blendMode(BLEND)
 }
 async function softBrush(p, r) {
     for (let i = 0; i < r * 10; i++) {
-        const rr = random() * r / 2
-        const a = random(360)
-        strokeWeight(random(2))
+        const rr = R.random_dec() * r / 2
+        const a = R.random(360)
+        strokeWeight(R.random(2))
         await drawDot(p.copy().add(cos(a) * rr, sin(a) * rr))
     }
 }
