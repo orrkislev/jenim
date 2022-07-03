@@ -356,7 +356,7 @@ class Denim {
         gh.noStroke()
         const newPattern = new LayoutPattern2(pattern.ps)
 
-        const stitchPlaces = [15]
+        const stitchPlaces = random()<0.5 ? [15] : [7,35]
 
         gh.fill(255, 100)
         newPattern.ps = pattern.getOffset(0)
