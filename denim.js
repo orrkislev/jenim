@@ -18,7 +18,7 @@ class Denim {
         this.layoutPattern = layoutPattern
         this.color = color
         this.visibleWhite = R.random(0.5, 1)
-        this.darkness = R.random(0.2, 0.7)
+        this.darkness = R.random(0.3)
         this.noiseScale = R.random(200, 400)
         this.warpExtensions = [8, 25]
         this.extendChance = 0.5
@@ -349,32 +349,43 @@ class Denim {
     }
 
     foldedStitchings(pattern) {
+        print('foldedStitchings')
         if (!pattern) pattern = this.layoutPattern
 
         const gh = createGraphics(baseWidth, baseHeight)
         gh.noStroke()
         const newPattern = new LayoutPattern2(pattern.ps)
 
+        const stitchPlaces = [15]
+
         gh.fill(255, 100)
         newPattern.ps = pattern.getOffset(0)
         newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(6) * initialThreadSize))
-        gh.fill(255, 30)
-        newPattern.ps = pattern.getOffset(45)
-        newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(6) * initialThreadSize))
+        gh.fill(255, 20)
+        for (const stitchPlace of stitchPlaces) {
+            newPattern.ps = pattern.getOffset(stitchPlace + 5)
+            newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(6) * initialThreadSize))
+        }
 
-        gh.fill(0, 30)
-        newPattern.ps = pattern.getOffset(7)
-        newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(9)) * initialThreadSize)
-        gh.fill(120, 10)
-        newPattern.ps = pattern.getOffset(40)
-        newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(9) * initialThreadSize))
+        gh.fill(0, 20)
+        for (const stitchPlace of stitchPlaces) {
+            newPattern.ps = pattern.getOffset(stitchPlace)
+            newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(9)) * initialThreadSize)
+        }
+        // gh.fill(120, 10)
+        // for (const stitchPlace of stitchPlaces) {
+        //     newPattern.ps = pattern.getOffset(stitchPlace)
+        //     newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(9) * initialThreadSize))
+        // }
 
-        newPattern.ps = pattern.getOffset(22)
-        newPattern.getCurve().forEach((p, i) => {
-            const s = (sin(i * 8) + 1) / 2
-            gh.fill(255 * s, 15)
-            gh.circle(p.x, p.y, R.random(5, 25) * initialThreadSize)
-        })
+        for (let i=0; i<stitchPlaces.length; i++) {
+            newPattern.ps = pattern.getOffset(stitchPlaces[i]-15)
+            newPattern.getCurve().forEach((p, i) => {
+                const s = (sin(i * 8) + 1) / 2
+                gh.fill(255 * s, 7)
+                gh.circle(p.x, p.y, R.random(5, 25) * initialThreadSize)
+            })
+        }
 
         this.weft.forEach(col => {
             col.forEach(loop => {
@@ -383,13 +394,13 @@ class Denim {
                     const c = gh.get(p.x, p.y)
                     if (alpha(c) > 0) {
                         loop.age = (brightness(c) / 360) * (alpha(c) / 255)
-                        if (loop.yellow) loop.yellow /= 5
+                        if (loop.yellow) loop.yellow = 0
                         loop.darkness = 0.25 - (brightness(c) / 360) * (alpha(c) / 255) / 4
                     }
                 }
             })
         })
-        pattern.setStitches(stitchTypes.DOUBLE, [7, 40])
+        pattern.setStitches(stitchTypes.DOUBLE, stitchPlaces)
         return this
     }
 

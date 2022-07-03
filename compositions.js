@@ -1,4 +1,5 @@
-const compositions = [hem, twohalfs, withPocket, patches, largeRips, fringes_composition]
+// const compositions = [hem, twohalfs, withPocket, patches, largeRips, fringes_composition]
+const compositions = [withDivide, patches, largeRips]
 
 async function hem() {
     print('composition - hem')
@@ -171,7 +172,7 @@ async function withDivide() {
     print('composition - divide')
 
     const flipped = random() < 0.5
-    const withStitch = random() < 0.5
+    const withStitch = true//random() < 0.5
     const withFringe = random() < 0.5
     const isHorizontal = random() < 0.5
 
@@ -181,49 +182,52 @@ async function withDivide() {
 
     let start, end
     if (isHorizontal) {
-        start = v(0, R.random(baseHeight))
-        end = v(baseWidth, R.random(baseHeight))
+        start = v(-baseWidth*.2, R.random(baseHeight))
+        end = v(baseWidth*1.2, R.random(baseHeight))
     } else {
-        start = v(R.random(baseWidth), 0)
-        end = v(R.random(baseWidth), baseHeight)
+        start = v(R.random(baseWidth), -baseHeight*.2)
+        end = v(R.random(baseWidth), baseHeight*1.2)
     }
 
     const middlePointsSum = R.random(2, 5)
     const dir = p5.Vector.sub(end, start).div(middlePointsSum)
     const middlePoints = []
-    for (let i = 1; i < middlePoints + 1; i++) {
+    print(middlePointsSum)
+    for (let i = 1; i < middlePointsSum + 1; i++) {
+        print(i)
         const middlePoint = p5.Vector.lerp(start, end, i / middlePointsSum)
-        middlePoint.add(dir.copy().rotate(90).mult(R.random(-1, 1)))
+        middlePoint.add(dir.copy().rotate(90).mult(R.random(-.2,.2)))
         middlePoints.push(middlePoint)
     }
+    print(middlePoints)
 
     let corner1, corner2
     if (isHorizontal){
         if (random()<0.5) {
-            corner1 = v(0, 0)
-            corner2 = v(baseWidth, 0)
+            corner1 = v(-baseWidth*.2, -baseHeight*.2)
+            corner2 = v(baseWidth*1.2, -baseHeight*.2)
         } else {
-            corner1 = v(0, baseHeight)
-            corner2 = v(baseWidth, baseHeight)
+            corner1 = v(-baseWidth*.2, baseHeight*1.2)
+            corner2 = v(baseWidth*1.2, baseHeight*1.2)
         }
     } else {
         if (random()<0.5) {
-            corner1 = v(0, 0)
-            corner2 = v(0, baseHeight)
+            corner1 = v(-baseWidth*.2, -baseHeight*.2)
+            corner2 = v(-baseWidth*.2, baseHeight*1.2)
         } else {
-            corner1 = v(baseWidth, 0)
-            corner2 = v(baseWidth, baseHeight)
+            corner1 = v(baseWidth*1.2, -baseHeight*.2)
+            corner2 = v(baseWidth*1.2, baseHeight*1.2)
         }
     }
 
     const points = [corner1, start, ...middlePoints, end, corner2]
 
-    pattern_top = new LayoutPattern2(points).fillet(24)
+    pattern_top = new LayoutPattern2(points).fillet(50)
 
     denim_top = new Denim(pattern_top, denimColor).rotate(R.random(-360))
     if (flipped) denim_top.visibleWhite = 1
     denim_top.age = 0.2
-    denim_top.ripThreshold = R.random(.18, .45)
+    denim_top.ripThreshold = R.random(.12, .45)
     denim_top.calc().makeRips()
 
     applyColorFunc(denim_bg, globalColorFunc)
@@ -232,11 +236,11 @@ async function withDivide() {
     denim_top.foldedStitchings()
     denim_top.dropShadowOn([denim_bg])
 
-    if (withFringe) {
+    if (withFringe && random() < 0.5) {
         denim_top.warpExtensions = [R.random(10, 50), R.random(50, 200)]
         denim_top.extendChance = R.random(.7, 1)
     }
 
     await denim_bg.draw({ dontFringe: true })
-    await denim_top.draw({ dontFringe: withFringe ? false : random() < 0.5 })
+    await denim_top.draw({ dontFringe: false})
 }

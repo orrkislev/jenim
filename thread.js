@@ -19,7 +19,7 @@ async function franzim(pos, dir, l) {
     ps = makeCurve(ps)
 
     for (let i=0;i<ps.length;i++){
-        await burn(ps[i].copy().add(10*i/ps.length,10*i/ps.length).mult(globalScale), this.threadSize * globalScale * 2, 7)
+        await burn(ps[i].copy().add(6*i/ps.length,6*i/ps.length).mult(globalScale), this.threadSize * globalScale, 7)
     }
 
     await thread(ps, color(R.random_choice(warpColors)), 3)

@@ -165,18 +165,27 @@ class LayoutPattern2 extends PatternShape {
 
     async drawStitches(denim = null) {
         if (!this.stitchType) return
-        if (this.stitchType == stitchTypes.DOUBLE) {
+        let stitches = []
+        for (const d of this.stitchData) {
+            stitches = [...stitches,...this.stitches(d, 7, 6)]
+        }
+
+        if (this.stitchType == stitchTypes.HANDMADE) {
             for (const d of this.stitchData) {
-                let stitches = this.stitches(d, 10, 10)
+                stitches = this.stitches(d, 6, 8, true)
                 for (let st of stitches) {
-                    const weftLoop = denim.hasWeftOn(st[0])
-                    if (weftLoop) {
-                        const newLoop = new Loop(st, stitchColor, initialThreadSize * 2).wiggle().shadow()
-                        newLoop.age = weftLoop.age
-                        await newLoop.draw()
-                    }
+                    st[0].add(random(-threadSize, threadSize))
+                    st[1].add(random(-threadSize, threadSize))
                 }
-                await timeout(0);
+            }
+        }
+
+        for (let st of stitches) {
+            const weftLoop = denim.hasWeftOn(st[0])
+            if (weftLoop) {
+                const newLoop = new Loop(st, stitchColor, initialThreadSize * 2).wiggle().shadow()
+                newLoop.age = weftLoop.age
+                await newLoop.draw()
             }
         }
     }
