@@ -315,7 +315,8 @@ class Denim {
             for (let i = 0; i < col.length; i++) {
                 const p = col[i].ps[0]
                 const val = 1 - dist(p.x, p.y, baseWidth / 2, baseHeight / 2) / (baseHeight / 2)
-                col[i].age = val * this.age
+                col[i].age = val * this.age / 2
+                col[i].yellow = val * this.age / 2
             }
         })
     }
@@ -382,6 +383,7 @@ class Denim {
                     const c = gh.get(p.x, p.y)
                     if (alpha(c) > 0) {
                         loop.age = (brightness(c) / 360) * (alpha(c) / 255)
+                        if (loop.yellow) loop.yellow /= 5
                         loop.darkness = 0.25 - (brightness(c) / 360) * (alpha(c) / 255) / 4
                     }
                 }

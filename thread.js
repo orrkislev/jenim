@@ -52,7 +52,8 @@ class Loop {
         if (this.ps.length<=1)return
         if (this.withShadow)
             for (const p of makeCurve(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 10)
-        this.color = lerpColor(this.color, color(R.random_choice(natural)), this.age)
+        if (this.age) this.color = lerpColor(this.color, color(R.random_choice(natural)), this.age)
+        if (this.yellow) this.color = lerpColor(this.color, color('#ebe1a2'), this.yellow)
         if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5*this.darkness*360,-.5*this.darkness*360)
         threadSize = this.threadSize
         await thread(this.ps, this.color, 3)

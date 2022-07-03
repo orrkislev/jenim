@@ -49,19 +49,20 @@ async function twohalfs() {
 async function withPocket() {
     print('composition - pocket')
     pattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
-    pocketPattern = new LayoutPattern2([v(0, 0), v(120, 490), v(340, 570), v(580, 470), v(660, 0)]).fillet(12)
+    pocketPattern = new LayoutPattern2([v(0, 0), v(240, 1000), v(680, 1140), v(1160, 940), v(1320, 0)]).fillet(24)
     const pocketCenter = pocketPattern.center()
     pocketPattern.ps.forEach(p => p.sub(pocketCenter))
     const x = R.random(baseWidth)
     const y = R.random(baseHeight - pocketCenter.y)
     pocketPattern.ps.forEach(p => p.add(x, y))
 
-    rotation = R.random(40)
+    rotation = R.random(-60,60)
     pocketPattern.rotate(rotation)
 
     denim = new Denim(pattern, denimColor).rotate(rotation - 10).calc()
     pocket = new Denim(pocketPattern, denimColor).rotate(R.random(-60, 60))
     pocket.age = 0.2
+    pocket.ripThreshold = R.random(.18, .45)
     pocket.calc().makeRips()
 
     applyColorFunc(denim, globalColorFunc)
@@ -71,7 +72,7 @@ async function withPocket() {
     pocket.dropShadowOn([denim])
 
     await denim.draw({ dontFringe: true })
-    await pocket.draw({ dontFringe: true })
+    await pocket.draw({ dontFringe: R.random_dec() < 0.5 })
 }
 
 async function patches() {
