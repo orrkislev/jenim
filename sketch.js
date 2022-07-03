@@ -16,6 +16,8 @@ function setup() {
 
     if (windowWidth * (16 / 9) > windowHeight) canvas = createCanvas(windowHeight / (16 / 9), windowHeight);
     else canvas = createCanvas(windowWidth, windowWidth * (16 / 9))
+    // resizeCanvas(width * 4, height * 4)
+
 
     globalScale = width / baseWidth
 

@@ -270,7 +270,7 @@ class Denim {
             let c = color(this.color)
             this.weft.forEach(col => col.forEach(loop => loop.ps.forEach(p => {
                 if (p && p5.Vector.dist(p, end.pos) < 10)
-                    c = loop.color
+                    c = loop.getFinalColor()
             })))
             c.setAlpha(50)
 

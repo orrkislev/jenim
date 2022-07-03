@@ -147,26 +147,26 @@ async function largeRips() {
     await denim2.draw()
 }
 
-async function fringes_composition() {
-    print('composition - fringe')
-    pattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
-    denim = new Denim(pattern, neighborColor(denimColor, 0, 0, -50)).rotate(R.random(360))
-    denim.visibleWhite = 0
-    denim.darkness = .3
-    denim.calc()
-    await denim.draw({ dontFringe: true })
+// async function fringes_composition() {
+//     print('composition - fringe')
+//     pattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
+//     denim = new Denim(pattern, neighborColor(denimColor, 0, 0, -50)).rotate(R.random(360))
+//     denim.visibleWhite = 0
+//     denim.darkness = .3
+//     denim.calc()
+//     await denim.draw({ dontFringe: true })
 
-    const perc = R.random(.5, .8)
-    const vertical = R.random_dec() < 0.5
-    const doRotation = R.random_dec() < 0.5
-    if (vertical) pattern = new SquarePatternShape(-baseWidth / 2, -baseHeight / 2, baseWidth * (perc + 0.5), baseHeight * 2)
-    else pattern = new SquarePatternShape(-baseWidth / 2, -baseHeight / 2, baseWidth * 2, baseHeight * (perc + 0.5))
-    if (doRotation) pattern.rotateAround(v_rel(0.5, 0.5), 180)
-    denim = new Denim(pattern, denimColor).rotate(vertical ? 0 : 90).calc()
-    denim.warpExtensions = [R.random(10, 50), R.random(50, 200)]
-    denim.extendChance = R.random(.7, 1)
-    await denim.draw()
-}
+//     const perc = R.random(.5, .8)
+//     const vertical = R.random_dec() < 0.5
+//     const doRotation = R.random_dec() < 0.5
+//     if (vertical) pattern = new SquarePatternShape(-baseWidth / 2, -baseHeight / 2, baseWidth * (perc + 0.5), baseHeight * 2)
+//     else pattern = new SquarePatternShape(-baseWidth / 2, -baseHeight / 2, baseWidth * 2, baseHeight * (perc + 0.5))
+//     if (doRotation) pattern.rotateAround(v_rel(0.5, 0.5), 180)
+//     denim = new Denim(pattern, denimColor).rotate(vertical ? 0 : 90).calc()
+//     denim.warpExtensions = [R.random(10, 50), R.random(50, 200)]
+//     denim.extendChance = R.random(.7, 1)
+//     await denim.draw()
+// }
 
 async function withDivide() {
     print('composition - divide')

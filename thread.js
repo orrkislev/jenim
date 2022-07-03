@@ -48,6 +48,13 @@ class Loop {
         this.withShadow = t
         return this
     }
+    getFinalColor() {
+        let res = this.color
+        if (this.age) res = lerpColor(res, color(R.random_choice(natural)), this.age)
+        if (this.yellow) res = lerpColor(res, color('#ebe1a2'), this.yellow)
+        if (this.darkness != 0) res = neighborColor(res, 0, .5*this.darkness*360,-.5*this.darkness*360)
+        return res
+    }
     async draw() {
         if (this.ps.length<=1)return
         if (this.withShadow)
