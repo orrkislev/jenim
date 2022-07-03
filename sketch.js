@@ -43,7 +43,7 @@ async function makeImage() {
         
         background(BG)
         let composition = R.random_choice(compositions)
-        composition = withPocket
+        // composition = withDivide
         await composition()
         print('done')
 

@@ -1,4 +1,4 @@
-const compositions = [hem, twohalfs, withPocket, patches, largeRips, withFringe]
+const compositions = [hem, twohalfs, withPocket, patches, largeRips, fringes_composition]
 
 async function hem() {
     print('composition - hem')
@@ -24,8 +24,8 @@ async function hem() {
 
 async function twohalfs() {
     print('composition - two halfs')
-    pattern_l = new SquarePatternShape(baseWidth / 2 - baseHeight, -baseHeight*0.15, baseHeight, baseHeight*1.3)
-    pattern_r = new SquarePatternShape(baseWidth / 2, -baseHeight*0.15, baseHeight, baseHeight*1.3)
+    pattern_l = new SquarePatternShape(baseWidth / 2 - baseHeight, -baseHeight * 0.15, baseHeight, baseHeight * 1.3)
+    pattern_r = new SquarePatternShape(baseWidth / 2, -baseHeight * 0.15, baseHeight, baseHeight * 1.3)
     const r = R.random(-30, 30)
     pattern_r.rotateAround(v_rel(0.5, 0.5), r)
     pattern_l.rotateAround(v_rel(0.5, 0.5), r)
@@ -56,7 +56,7 @@ async function withPocket() {
     const y = R.random(baseHeight - pocketCenter.y)
     pocketPattern.ps.forEach(p => p.add(x, y))
 
-    rotation = R.random(-60,60)
+    rotation = R.random(-60, 60)
     pocketPattern.rotate(rotation)
 
     denim = new Denim(pattern, denimColor).rotate(rotation - 10).calc()
@@ -146,23 +146,97 @@ async function largeRips() {
     await denim2.draw()
 }
 
-async function withFringe() {
+async function fringes_composition() {
     print('composition - fringe')
     pattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
     denim = new Denim(pattern, neighborColor(denimColor, 0, 0, -50)).rotate(R.random(360))
     denim.visibleWhite = 0
     denim.darkness = .3
     denim.calc()
-    await denim.draw({dontFringe:true})
+    await denim.draw({ dontFringe: true })
 
     const perc = R.random(.5, .8)
     const vertical = R.random_dec() < 0.5
-    const doRotation = R.random_dec()<0.5
-    if (vertical) pattern = new SquarePatternShape(-baseWidth/2, -baseHeight/2, baseWidth * (perc+0.5), baseHeight*2)
-    else pattern = new SquarePatternShape(-baseWidth/2, -baseHeight/2, baseWidth*2, baseHeight*(perc+0.5))
+    const doRotation = R.random_dec() < 0.5
+    if (vertical) pattern = new SquarePatternShape(-baseWidth / 2, -baseHeight / 2, baseWidth * (perc + 0.5), baseHeight * 2)
+    else pattern = new SquarePatternShape(-baseWidth / 2, -baseHeight / 2, baseWidth * 2, baseHeight * (perc + 0.5))
     if (doRotation) pattern.rotateAround(v_rel(0.5, 0.5), 180)
     denim = new Denim(pattern, denimColor).rotate(vertical ? 0 : 90).calc()
     denim.warpExtensions = [R.random(10, 50), R.random(50, 200)]
-    denim.extendChance = R.random(.7,1)
+    denim.extendChance = R.random(.7, 1)
     await denim.draw()
+}
+
+async function withDivide() {
+    print('composition - divide')
+
+    const flipped = random() < 0.5
+    const withStitch = random() < 0.5
+    const withFringe = random() < 0.5
+    const isHorizontal = random() < 0.5
+
+
+    pattern_bg = new SquarePatternShape(0, 0, baseWidth, baseHeight)
+    denim_bg = new Denim(pattern_bg, denimColor).rotate(R.random(360)).calc()
+
+    let start, end
+    if (isHorizontal) {
+        start = v(0, R.random(baseHeight))
+        end = v(baseWidth, R.random(baseHeight))
+    } else {
+        start = v(R.random(baseWidth), 0)
+        end = v(R.random(baseWidth), baseHeight)
+    }
+
+    const middlePointsSum = R.random(2, 5)
+    const dir = p5.Vector.sub(end, start).div(middlePointsSum)
+    const middlePoints = []
+    for (let i = 1; i < middlePoints + 1; i++) {
+        const middlePoint = p5.Vector.lerp(start, end, i / middlePointsSum)
+        middlePoint.add(dir.copy().rotate(90).mult(R.random(-1, 1)))
+        middlePoints.push(middlePoint)
+    }
+
+    let corner1, corner2
+    if (isHorizontal){
+        if (random()<0.5) {
+            corner1 = v(0, 0)
+            corner2 = v(baseWidth, 0)
+        } else {
+            corner1 = v(0, baseHeight)
+            corner2 = v(baseWidth, baseHeight)
+        }
+    } else {
+        if (random()<0.5) {
+            corner1 = v(0, 0)
+            corner2 = v(0, baseHeight)
+        } else {
+            corner1 = v(baseWidth, 0)
+            corner2 = v(baseWidth, baseHeight)
+        }
+    }
+
+    const points = [corner1, start, ...middlePoints, end, corner2]
+
+    pattern_top = new LayoutPattern2(points).fillet(24)
+
+    denim_top = new Denim(pattern_top, denimColor).rotate(R.random(-360))
+    if (flipped) denim_top.visibleWhite = 1
+    denim_top.age = 0.2
+    denim_top.ripThreshold = R.random(.18, .45)
+    denim_top.calc().makeRips()
+
+    applyColorFunc(denim_bg, globalColorFunc)
+    applyColorFunc(denim_top, globalColorFunc)
+
+    denim_top.foldedStitchings()
+    denim_top.dropShadowOn([denim_bg])
+
+    if (withFringe) {
+        denim_top.warpExtensions = [R.random(10, 50), R.random(50, 200)]
+        denim_top.extendChance = R.random(.7, 1)
+    }
+
+    await denim_bg.draw({ dontFringe: true })
+    await denim_top.draw({ dontFringe: withFringe ? false : random() < 0.5 })
 }
