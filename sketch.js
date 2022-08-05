@@ -38,7 +38,6 @@ async function makeImage() {
         // randomSeed(Math.random()*10000)
         // noiseSeed(Math.random()*10000)
         // ripNoiseScale = [random(5, 15), random(5, 15)]
-        initThreadParams()
         initDenimParams()
         initBaseColor()
         initColorFunc()

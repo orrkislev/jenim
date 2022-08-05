@@ -189,7 +189,7 @@ async function withDivide() {
         end = v(baseWidth * R.random(.3,.7), baseHeight*1.2)
     }
 
-    const middlePointsSum = R.random(2, 5)
+    const middlePointsSum = R.random()<0.5 ? R.random(2, 5) : 0
     const dir = p5.Vector.sub(end, start).div(middlePointsSum)
     const middlePoints = []
     print(middlePointsSum)
@@ -227,7 +227,7 @@ async function withDivide() {
     denim_top = new Denim(pattern_top, denimColor).rotate(R.random(-360))
     if (flipped) denim_top.visibleWhite = 1
     denim_top.age = 0.2
-    denim_top.ripThreshold = R.random(.5, .45)
+    denim_top.ripThreshold = R.random(.1, .45)
     denim_top.calc().makeRips()
 
     applyColorFunc(denim_bg, globalColorFunc)

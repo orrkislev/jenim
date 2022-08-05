@@ -1,17 +1,16 @@
-const initThreadParams = ()=>{
-    franzimDirOffset = R.random(360)
-}
-
+let franzimDirOffset
 async function franzim(pos, dir, l) {
+    if (!franzimDirOffset) franzimDirOffset = R.random(-45,45)
     threadSize = initialThreadSize * 0.8
     dir.setMag(3)
     let ps = [pos]
     for (let i = 0; i < l / 3; i++) {
         let h = dir.heading()
         const noiseVal = noise(ps[ps.length - 1].x * globalScale/ 20, ps[ps.length - 1].y * globalScale/ 20)
-        const angle2 = (noiseVal - 0.5) * 720 + franzimDirOffset
-        h = lerp(h, angle2, 0.1)
-        h = lerp(h, 90, 0.1)
+        // const angle2 = (noiseVal - 0.5) * 720 + franzimDirOffset
+        const angle2 = (noiseVal - 0.5) * 360
+        h = lerp(h, h + angle2, 0.1)
+        // h = lerp(h, 90, 0.1)
         h += R.random(-5, 5)
         dir.setHeading(radians(h))
         ps.push(ps[ps.length - 1].copy().add(dir))

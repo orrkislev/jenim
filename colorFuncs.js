@@ -137,7 +137,7 @@ const initBaseColor = () => {
         print('base color - black')
     } else {
         stitchColor = color(255)
-        denimColor = makeColor(R.random(0, 70))       // random color
+        denimColor = makeColor(R.random(0, 70), R.random(200,360), R.random(100,250))       // random color
         patchStitchColor = color(0)
         print('base color - colorful')
     }
