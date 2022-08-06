@@ -8,7 +8,7 @@ async function franzim(pos, dir, l) {
         let h = dir.heading()
         const noiseVal = noise(ps[ps.length - 1].x * globalScale/ 20, ps[ps.length - 1].y * globalScale/ 20)
         // const angle2 = (noiseVal - 0.5) * 720 + franzimDirOffset
-        const angle2 = (noiseVal - 0.5) * 360
+        const angle2 = (noiseVal - 0.5) * 120
         h = lerp(h, h + angle2, 0.1)
         // h = lerp(h, 90, 0.1)
         h += R.random(-5, 5)
