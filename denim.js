@@ -6,10 +6,10 @@ function initDenimParams() {
     patternTop = [2]
     patternBottom = [1]
 
-    if (R.random_dec() < 0.1) {
+    if (R.random_dec() < 0.07) {
         startOffset = Array(R.random_int(1, 3)).fill(0).map((a, i) => i)
-        patternTop = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 5))
-        patternBottom = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 5))
+        patternTop = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
+        patternBottom = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
     }
 }
 
