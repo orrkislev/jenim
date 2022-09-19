@@ -20,7 +20,7 @@ class Denim {
         this.visibleWhite = R.random(0.5, 1)
         this.darkness = R.random(0.3)
         this.noiseScale = R.random(200, 400)
-        this.warpExtensions = [8, 25]
+        this.warpExtensions = [15, 40]
         this.extendChance = 0.5
         this.age = age
         this.rotation = 0
@@ -242,8 +242,13 @@ class Denim {
         this.weft.forEach(col => col.forEach((loop, loopIndex) => {
             const inHole = loop.ps.filter(p => !this.pointInRip(p)).length > 0
             if ((inHole && waitForRip) || (!inHole && !waitForRip)) {
+                let pos = loop.ps.filter(a => a != null)[0]
+                let dir = p5.Vector.sub(loop.ps[1], loop.ps[0])
+                if (inHole) pos.add(dir)
+                else pos.sub(dir)
                 this.weftRips.push({
-                    pos: loop.ps.filter(a => a != null)[0],
+                    // pos: loop.ps.filter(a => a != null)[0],
+                    pos,
                     dir: waitForRip ? loop.dir().mult(-1) : loop.dir()
                 })
                 waitForRip = !waitForRip
@@ -274,34 +279,23 @@ class Denim {
             })))
             c.setAlpha(50)
 
-            if (R.random_dec() < 0.5) {
+            if (R.random_dec() < 0.25) {
                 stroke(c)
                 for (let a = 0; a < R.random(1,5); a++) {
                     await tinyThread(end.pos.copy().mult(globalScale), R.random(3, 10))
-                    // const start = end.pos.copy()
-                    // const dir = p5.Vector.random2D()
-                    // for (let i = 0; i < random(5, 80); i++) {
-                    //     start.add(dir)
-                    //     dir.rotate(random(-5, 5))
-                    //     await drawDot(start)
-                    // }
                 }
             } else {
-                let ps = [end.pos]
-                const dir = end.dir.setMag(3)
-                const l = R.random(2, 5)
+                let ps = [end.pos.copy(), end.pos.copy()]
+                const dir = end.dir.setMag(4 * globalScale)
+                const l = R.random(6, 12)
                 for (let i = 0; i < l; i++) {
                     dir.rotate(R.random(-25, 25))
                     ps.push(ps[ps.length - 1].copy().add(dir))
                 }
-                // ps = makeCurve(ps)
                 await thread(ps, c, 5)
             }
             if (counter++ % 30 == 0) await timeout(0);
         }
-
-        // fill(0)
-        // this.weftRips.forEach(p=>circle(p.x,p.y,5))
     }
 
     // ---------------------------------------------------

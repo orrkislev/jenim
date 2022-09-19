@@ -9,12 +9,14 @@ function genTokenData(projectNum) {
     return data;
 }
 
-// const tokenData = {
-//     hash: "0x11ac16678959949c12d5410212301960fc496813cbc3495bf77aeed738579738",
-//     tokenId: "123000456"
-// }
 
 let tokenData = genTokenData()
+
+// tokenData = {
+//     hash: "0xbfad7025d7b8970779f158388ce7982b9a7a3fc9506448e457b4a152d3a1cb4b",
+//     tokenId: null
+// }
+
 
 class Random {
     constructor() {

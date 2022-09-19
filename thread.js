@@ -2,11 +2,12 @@ let franzimDirOffset
 async function franzim(pos, dir, l) {
     if (!franzimDirOffset) franzimDirOffset = R.random(-45,45)
     threadSize = initialThreadSize * 0.8
-    dir.setMag(3)
+    dir.setMag(3 * globalScale)
     let ps = [pos]
     for (let i = 0; i < l / 3; i++) {
         let h = dir.heading()
-        const noiseVal = noise(ps[ps.length - 1].x * globalScale/ 20, ps[ps.length - 1].y * globalScale/ 20)
+        // const noiseVal = noise(ps[ps.length - 1].x * globalScale/ 20, ps[ps.length - 1].y * globalScale/ 20)
+        const noiseVal = noise(20 * ps[ps.length - 1].x / baseWidth, 20 * ps[ps.length - 1].y / baseHeight)
         // const angle2 = (noiseVal - 0.5) * 720 + franzimDirOffset
         const angle2 = (noiseVal - 0.5) * 120
         h = lerp(h, h + angle2, 0.1)

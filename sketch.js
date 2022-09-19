@@ -27,7 +27,7 @@ function setup() {
     noFill()
 
     ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
-    initialThreadSize = 3
+    initialThreadSize = R.random(2.5,3.5)
     // initialThreadSize = width / 1000 * initialThreadSize
     threadSize = initialThreadSize
     makeImage()
