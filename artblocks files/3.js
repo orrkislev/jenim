@@ -137,7 +137,6 @@ async function patches() {
     const ptchs = []
 
     for (let i=0;i<sumPatches;i++){
-        print(i,R.usage)
         if (R.random_dec() < 0.5) ptchs.push(roundPatch(baseWidth * R.random(0.1, 0.25), v_rel(R.random(.2, .8), R.random(.2, .8)), denimColor))
         // if (R.random_dec() < 0.5) ptchs.push(roundPatch(R.random(30, 250), v_rel(R.random(.2, .8), R.random(.2, .8)), denimColor))
         else ptchs.push(rectPatch(denimColor))
@@ -148,6 +147,7 @@ async function patches() {
 
     for (let i=0;i<ptchs.length;i++) applyPatch3dEffect(ptchs[i].denim, denim)
 
+    background(BG)
     await denim.draw({ dontFringe: denimFringe })
 
     for (let i = 0; i < ptchs.length; i++) {
@@ -170,6 +170,8 @@ async function largeRips() {
     denim2.calc().makeRips()
     applyColorFunc(denim2, globalColorFunc)
     denim2.dropShadowOn([denim])
+
+    background(BG)
     await denim.draw({ dontFringe: true })
     await denim2.draw()
 }
@@ -242,6 +244,7 @@ async function withDivide() {
         denim_top.extendChance = R.random(.7, 1)
     }
 
+    background(BG)
     await denim_bg.draw({ dontFringe: true })
     await denim_top.draw({ dontFringe: false })
 }
@@ -281,11 +284,18 @@ function setup() {
 }
 
 async function makeImage() {
+    background(BG)
+    fill(255)
+    textSize(10)
+    textAlign(CENTER, CENTER)
+    text('Loading Jenim', width/2,height/2)
+    noFill()
+    await timeout(30)
+
     initDenimParams()
     initBaseColor()
     initColorFunc()
 
-    background(BG)
     let composition = R.random_choice(compositions)
     print(composition.name)
     // composition = patches

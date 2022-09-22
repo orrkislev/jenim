@@ -66,7 +66,6 @@ function calculateFeatures(tokenData) {
                 }
             }
         }
-
     }
 
     function initColorFunc(R, specialWeave) {

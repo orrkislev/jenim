@@ -10,11 +10,11 @@ function genTokenData(projectNum) {
 }
 
 
-// let tokenData = genTokenData()
+let tokenData = genTokenData()
 
 //   tokenData = {
 //       hash: "0xcd5fb7172d587367cff11f8e1642d835708fedb2335d230350de2daee9925bc5",
 //       tokenId: null
 //   }
 
-let tokenData = {"tokenId":"105000003","hash":"0x066814c791b437ae3da6be12835720eadde41538098b735cd7c29cfaa145c7cc"}
+// let tokenData = {"tokenId":"105000003","hash":"0x066814c791b437ae3da6be12835720eadde41538098b735cd7c29cfaa145c7cc"}

@@ -19,6 +19,7 @@ async function patches() {
 
     for (let i=0;i<ptchs.length;i++) applyPatch3dEffect(ptchs[i].denim, denim)
 
+    background(BG)
     await denim.draw({ dontFringe: denimFringe })
 
     for (let i = 0; i < ptchs.length; i++) {
@@ -41,6 +42,8 @@ async function largeRips() {
     denim2.calc().makeRips()
     applyColorFunc(denim2, globalColorFunc)
     denim2.dropShadowOn([denim])
+
+    background(BG)
     await denim.draw({ dontFringe: true })
     await denim2.draw()
 }
@@ -113,6 +116,7 @@ async function withDivide() {
         denim_top.extendChance = R.random(.7, 1)
     }
 
+    background(BG)
     await denim_bg.draw({ dontFringe: true })
     await denim_top.draw({ dontFringe: false })
 }

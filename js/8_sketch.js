@@ -33,11 +33,18 @@ function setup() {
 }
 
 async function makeImage() {
+    background(BG)
+    fill(255)
+    textSize(10)
+    textAlign(CENTER, CENTER)
+    text('Loading Jenim', width/2,height/2)
+    noFill()
+    await timeout(30)
+
     initDenimParams()
     initBaseColor()
     initColorFunc()
 
-    background(BG)
     let composition = R.random_choice(compositions)
     print(composition.name)
     // composition = patches
