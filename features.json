@@ -1,0 +1,24 @@
+[
+    {
+        "type": "enum",
+        "name": "composition",
+        "options": [
+            "bleach_gradient",
+            "bleach_large",
+            "bleach_noise",
+            "strips",
+            "checkers",
+            "painters_camo",
+            "painters_pollock"
+        ]
+    },
+    {
+        "type": "enum",
+        "name": "clr",
+        "options": [
+            "indigo",
+            "black",
+            "colorful"
+        ]
+    }
+]

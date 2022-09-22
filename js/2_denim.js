@@ -6,7 +6,9 @@ function initDenimParams() {
     patternTop = [2]
     patternBottom = [1]
 
+    specialWeave = false
     if (R.random_dec() < 0.07) {
+        specialWeave = true
         startOffset = Array(R.random_int(1, 3)).fill(0).map((a, i) => i)
         patternTop = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
         patternBottom = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
@@ -26,25 +28,28 @@ class Denim {
         this.rotation = 0
         this.ripNoiseZ = R.random(1000)
         this.ripThreshold = R.random(.18, .32)
-        this.ripMin = R.random(30, 100) * initialThreadSize
-        this.ripMax = R.random(this.ripMin, 200) * initialThreadSize
+        this.ripMin = R.random(30, 70) * initialThreadSize
+        this.ripMax = R.random(this.ripMin, 160) * initialThreadSize
     }
     rotate(r) {
         this.rotation = r
         return this
     }
     calc(args = {}) {
+        this.ripThreshold += globalAge * 0.3
+        this.age += globalAge
+        this.ripMin -= globalAge * 30
+        this.ripMax -= globalAge * 70
+
         if (!this.warp) this.makeWarp()
         if (!this.weft) this.makeWeft()
         if (!args.dontTrim) this.trim()
-        // if (!args.dontUnravel) this.unravel()
-        // print('unravel',R.useA, R.usage)
+        if (!args.dontUnravel) this.unravel()
         if (!args.dontAge) this.doAge()
         return this
     }
     async draw(args = {}) {
         threadSize = initialThreadSize
-        if (args.withBehind) await this.drawBehind()
         if (!args.dontWarp) await this.drawWarp()
         if (!args.dontWeft) await this.drawWeft()
         if (!args.dontFringe) await this.extendWarps()
@@ -61,7 +66,7 @@ class Denim {
         const { pos, w, h, rotation } = containingSquare.getDimension()
         const dir1 = p5.Vector.fromAngle(radians(rotation)).setMag(w)
         const dir2 = dir1.copy().rotate(PI / 2).normalize()
-        const initialOffsetSize = 5*initialThreadSize
+        const initialOffsetSize = 5 * initialThreadSize
         const v1 = pos.copy().add(dir2.copy().setMag(initialOffsetSize).mult(-1))
         const v2 = v1.copy().add(dir1).add()
         const numPoints = 15
@@ -83,7 +88,7 @@ class Denim {
     }
     async drawWarp() {
         let i = 0
-        threadSize = initialThreadSize/2
+        threadSize = initialThreadSize / 2
         for (const row of this.warp) {
             const threadColor = lerpColor(color(warpColors[0]), color(warpColors[1]), R.random_dec())
             await thread(row, threadColor, 2)
@@ -144,11 +149,8 @@ class Denim {
     async drawWeft() {
         let i = 0
         for (const col of this.weft) {
-            for (const loop of col) {
-                await loop.draw()
-            }
-            if (i++ % 10 == 0)
-                await timeout(0);
+            for (const loop of col) await loop.draw()
+            if (i++ % 10 == 0) await timeout(0);
         }
     }
     hasWeftOn(p1) {
@@ -169,7 +171,7 @@ class Denim {
         this.warp = this.warp.map(row => row.filter(p => this.layoutPattern.pointInPattern(p)))
         this.warp = this.warp.filter(row => row.length > 1)
         this.weft = this.weft.map(col => col.filter(loop => loop.ps.filter(p => this.layoutPattern.pointInPattern(p)).length > 1))
-        this.warp = this.warp.map(row => row.filter(p => 
+        this.warp = this.warp.map(row => row.filter(p =>
             p.x >= -baseWidth * .1 && p.x <= baseWidth * 1.1 && p.y >= -baseHeight * .1 && p.y <= baseHeight * 1.1))
     }
     unravel() {
@@ -195,14 +197,14 @@ class Denim {
         for (let i = 0; i < this.warp.length; i++) {
             const row = this.warp[i]
             let part = []
-            if (row.length==0) continue
+            if (row.length == 0) continue
             for (let j = 0; j < 200; j++) {
-                const rowPoint = row[floor(row.length*j/200)]
+                const rowPoint = row[floor(row.length * j / 200)]
                 if (this.pointInRip(rowPoint)) {
                     part.push(j)
                 } else {
                     if (part.length > 2) {
-                        const partIndexes = part.map(stepIndex => floor(stepIndex*row.length/200))
+                        const partIndexes = part.map(stepIndex => floor(stepIndex * row.length / 200))
                         const partPoints = partIndexes.map(pindex => row[pindex])
                         const l = crvLength(partPoints)
 
@@ -215,22 +217,20 @@ class Denim {
                             for (let h = 0; h <= 5; h++)
                                 newPs.push(p5.Vector.lerp(first, last, h / 5).add(0, R.random(-2, 4)))
                             newPs = makeCurve(newPs)
-                            row.splice(partIndexes[0], partIndexes[partIndexes.length-1] -  partIndexes[0], ...newPs)
+                            row.splice(partIndexes[0], partIndexes[partIndexes.length - 1] - partIndexes[0], ...newPs)
                         }
                         if (l > this.ripMax) {
-                            // if (R.random_bool(1)) {
-                                this.warpRips.push({
-                                    pos: first,
-                                    dir: p5.Vector.sub(second, first),
-                                    len: l * R.random(0,0.5)
-                                })
-                                this.warpRips.push({
-                                    pos: last,
-                                    dir: p5.Vector.sub(secondToLast, last),
-                                    len: l * R.random(0,0.5)
-                                })
-                            // }
-                            row.splice(partIndexes[0], partIndexes[partIndexes.length-1] -  partIndexes[0])
+                            this.warpRips.push({
+                                pos: first,
+                                dir: p5.Vector.sub(second, first),
+                                len: l * R.random(0.1, 0.5)
+                            })
+                            this.warpRips.push({
+                                pos: last,
+                                dir: p5.Vector.sub(secondToLast, last),
+                                len: l * R.random(0.1, 0.5)
+                            })
+                            row.splice(partIndexes[0], partIndexes[partIndexes.length - 1] - partIndexes[0])
                         }
                     }
                     part = []
@@ -281,7 +281,7 @@ class Denim {
 
             if (R.random_dec() < 0.25) {
                 stroke(c)
-                for (let a = 0; a < R.random(1,5); a++) {
+                for (let a = 0; a < R.random(1, 5); a++) {
                     await tinyThread(end.pos.copy().mult(globalScale), R.random(3, 10))
                 }
             } else {
@@ -292,7 +292,7 @@ class Denim {
                     dir.rotate(R.random(-25, 25))
                     ps.push(ps[ps.length - 1].copy().add(dir))
                 }
-                await thread(ps, c, 5)
+                await thread(ps, c, 5, 50)
             }
             if (counter++ % 30 == 0) await timeout(0);
         }
@@ -338,19 +338,16 @@ class Denim {
                 })
             })
         }
-        // for (const denim of denims)
-        // this.layoutPattern.dropShadowOn(denim)
     }
 
     foldedStitchings(pattern) {
-        print('foldedStitchings')
         if (!pattern) pattern = this.layoutPattern
 
         const gh = createGraphics(baseWidth, baseHeight)
         gh.noStroke()
         const newPattern = new LayoutPattern2(pattern.ps)
 
-        const stitchPlaces = random()<0.5 ? [15] : [7,35]
+        const stitchPlaces = R.random() < 0.5 ? [15] : [7, 35]
 
         gh.fill(255, 100)
         newPattern.ps = pattern.getOffset(0)
@@ -366,14 +363,9 @@ class Denim {
             newPattern.ps = pattern.getOffset(stitchPlace)
             newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(9)) * initialThreadSize)
         }
-        // gh.fill(120, 10)
-        // for (const stitchPlace of stitchPlaces) {
-        //     newPattern.ps = pattern.getOffset(stitchPlace)
-        //     newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(9) * initialThreadSize))
-        // }
 
-        for (let i=0; i<stitchPlaces.length; i++) {
-            newPattern.ps = pattern.getOffset(stitchPlaces[i]-15)
+        for (let i = 0; i < stitchPlaces.length; i++) {
+            newPattern.ps = pattern.getOffset(stitchPlaces[i] - 15)
             newPattern.getCurve().forEach((p, i) => {
                 const s = (sin(i * 8) + 1) / 2
                 gh.fill(255 * s, 7)
@@ -396,14 +388,5 @@ class Denim {
         })
         pattern.setStitches(stitchTypes.DOUBLE, stitchPlaces)
         return this
-    }
-
-    async drawBehind() {
-        // const behind = new Denim(this.layoutPattern, this.color, 0).rotate(this.rotation - 180)
-        // behind.visibleWhite = 1
-        // behind.darkness = 0
-        // behind.pointInRip = (p) => !this.pointInRip(p)
-        // behind.calc()
-        // await behind.draw({ dontFringe: true })
     }
 }

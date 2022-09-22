@@ -4,16 +4,10 @@ async function franzim(pos, dir, l) {
     threadSize = initialThreadSize * 0.8
     dir.setMag(3 * globalScale)
     let ps = [pos]
-    for (let i = 0; i < l / 3; i++) {
-        let h = dir.heading()
-        // const noiseVal = noise(ps[ps.length - 1].x * globalScale/ 20, ps[ps.length - 1].y * globalScale/ 20)
+    for (let i = 0; i < l / dir.mag(); i++) {
         const noiseVal = noise(20 * ps[ps.length - 1].x / baseWidth, 20 * ps[ps.length - 1].y / baseHeight)
-        // const angle2 = (noiseVal - 0.5) * 720 + franzimDirOffset
         const angle2 = (noiseVal - 0.5) * 120
-        h = lerp(h, h + angle2, 0.1)
-        // h = lerp(h, 90, 0.1)
-        h += R.random(-5, 5)
-        dir.setHeading(radians(h))
+        dir.rotate(angle2/10 + R.random(-5,5))
         ps.push(ps[ps.length - 1].copy().add(dir))
     }
     ps = makeCurve(ps)
@@ -22,7 +16,7 @@ async function franzim(pos, dir, l) {
         await burn(ps[i].copy().add(6*i/ps.length,6*i/ps.length).mult(globalScale), this.threadSize * globalScale, 7)
     }
 
-    await thread(ps, color(R.random_choice(warpColors)), 3)
+    await thread(ps, color(R.random_choice(warpColors)), 3, 50)
     franzimDirOffset += 0.1
 }
 
@@ -73,8 +67,7 @@ class Loop {
 
 let t1 = 0
 
-async function thread(ps, clr, fluff = 1) {
-    // return
+async function thread(ps, clr, fluff = 1, alpha = 120) {
     newPs = ps.map(p=>p.copy().mult(globalScale))
     noFill()
     noStroke()
@@ -85,60 +78,12 @@ async function thread(ps, clr, fluff = 1) {
     crv.forEach(p => circle(p.x, p.y, threadSize * globalScale))
     noFill()
 
-    // noStroke()
-    // clr.setAlpha(80)
-    // fill(clr)
-    // for (let i = 0; i < crv.length - 1; i++) {
-    //     push()
-    //     const dir = p5.Vector.sub(crv[i + 1], crv[i]).heading() + 90
-    //     translate(crv[i].x, crv[i].y)
-    //     rotate(dir)
-    //     ellipse(0, 0, threadSize * 0.9, threadSize * 0.54)
-    //     pop()
-    // }
-
-    // strokeWeight(1)
-    // const arcPs = getEllipse(threadSize, threadSize, 45, 180, 360)
-    // arcPs.forEach(p => p.y *= 0.6)
-    // const twistK = random(-0.2, 0.2)
-    // const c = neighborColor(clr)
-    // for (let i = 0; i < crv.length - 1; i++) {
-    //     const dir = p5.Vector.sub(crv[i + 1], crv[i]).heading() + 90
-    //     const newPs = arcPs.map(p => p.copy())
-    //     newPs.forEach(p => p.y *= map(i, 0, crv.length, -1, 1))
-    //     newPs.forEach(p => p.rotate(dir))
-    //     newPs.forEach(p => p.add(crv[i]))
-    //     for (let pIndex = 0; pIndex < newPs.length; pIndex++) {
-    //         let val = getShadeAtVal(shade_round, i / crv.length) * 150
-    //         val += getShadeAtAngle(shade_round_shiny, pIndex * 7.5) * 0
-    //         val += (i % (10 + pIndex * twistK)) / (10 + pIndex * twistK) * 50
-    //         c.setAlpha(val * 0.2)
-    //         stroke(c)
-    //         await drawDot(newPs[pIndex])
-    //     }
-    // }
-
     strokeWeight(0.2 * threadSize * globalScale)
-    clr.setAlpha(50)
+    clr.setAlpha(alpha)
     stroke(clr)
     for (let f=0;f<fluff;f++)
         for (let i = 0; i < crv.length; i++) 
             await tinyThread(crv[i])
-}
-
-async function tinyThread2(p, clr, l = 1) {
-    const pos = p.copy().mult(globalScale)
-    strokeWeight(0.5)
-    noFill()
-    const dir = p5.Vector.random2D().normalize()
-    const lintLength = R.random(2, threadSize) * l
-    clr.setAlpha(50)
-    stroke(clr)
-    for (let j = 0; j < lintLength; j++) {
-        dir.rotate(radians(R.random(-15, 15)))
-        pos.add(dir)
-        await drawDot(pos)
-    }
 }
 
 let tinyThreadDir = 0

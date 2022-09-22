@@ -1,3 +1,6 @@
+const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
+const natural = ['#ede8d3', '#fafaf7', '#fcfcfc']
+
 const checkers = (clr, x, y) => {
     const gridSize = 120 * initialThreadSize
     const haldGridSize = 60 * initialThreadSize
@@ -16,16 +19,18 @@ const bleach_noise = (clr, x, y) => {
     if (v < 0.5) clr = lerpColor(clr, color(255), v + 0.5)
     return clr
 }
+let bleachScale = null
 const bleach_large = (clr, x, y) => {
+    if (!bleachScale) bleachScale = R.random(20,100) * initialThreadSize
     val = y / baseHeight
-    const noiseScale = 150 * initialThreadSize
-    if (noise(x / noiseScale, y / noiseScale) < val) clr = lerpColor(clr, color(255), val)
+    if (noise(x / bleachScale, y / bleachScale) < val) clr = lerpColor(clr, color(255), val)
     return clr
 }
 
-const stringYSize = R.random(3)
+let stripYSize
 const strips = (clr, x, y) => {
-    if ((x + floor(y / stringYSize)) % (120 * initialThreadSize) < (60 * initialThreadSize)) clr = lerpColor(clr, color(255), 0.4)
+    if (!stripYSize) stripYSize = R.random(3)
+    if ((x + floor(y / stripYSize)) % (120 * initialThreadSize) < (60 * initialThreadSize)) clr = lerpColor(clr, color(255), 0.4)
     return clr
 }
 
@@ -40,7 +45,6 @@ const initPainters = () => {
     if (globalColorFunc == painters_pollock) {
         polockImage = createGraphics(baseWidth, baseHeight)
         for (let i=0;i<150;i++){
-            // polockImage.fill(R.random_choice(paintersLayers).color)
             polockImage.fill(R.random_choice([color(0), color(255)]))
             polockImage.noStroke()
             const pos = v(R.random(baseWidth), R.random(baseHeight))
@@ -86,15 +90,13 @@ const painters_pollock = (clr, x, y) => {
 
 let globalColorFunc = null
 function initColorFunc() {
-
     let r = R.random_dec()
-    if (r < 0.6) {
-        globalColorFunc = null
-        print('special coloring - none')
-    } else {
-        globalColorFunc = R.random_choice([bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock])
+    if (r < 0.6) globalColorFunc = null
+    else {
+        let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock]
+        if (specialWeave) options = [bleach_gradient, bleach_large, strips]
+        globalColorFunc = R.random_choice(options)
         if (globalColorFunc == painters_pollock || globalColorFunc == painters_camo) initPainters()
-        print('special coloring - ' + globalColorFunc.name)
     }
 }
 
@@ -127,19 +129,19 @@ const initBaseColor = () => {
     const r = R.random_dec()
     if (r < 0.7) {
         stitchColor = color('orange')
-        denimColor = makeColor(R.random(200, 250), 360, R.random(180, 360))   // indigo
+        denimColor = makeColor(R.random(200, 250), 360, R.random(180, 360))
         patchStitchColor = R.random_choice([color(255, 0, 0), color(0), color(255)])
-        print('base color - indigo')
+        print('indigo')
     } else if (r < 0.8) {
         stitchColor = color(255)
-        denimColor = makeColor(0, 0, 0)             // black
+        denimColor = makeColor(0, 0, 0)
         patchStitchColor = color(255)
-        print('base color - black')
+        print('black')
     } else {
         stitchColor = color(255)
-        denimColor = makeColor(R.random(0, 70), R.random(200,360), R.random(100,250))       // random color
+        denimColor = makeColor(R.random(0, 70), R.random(200,360), R.random(100,250))
         patchStitchColor = color(0)
-        print('base color - colorful')
+        print('colorful')
     }
 }
 
@@ -162,4 +164,3 @@ function neighborColor(c, h = 0, s = null, b = null) {
     c1 = c1.toRGB()
     return c1
 }
-const neighborColors = (colors) => colors.map(c => neighborColor(c))

@@ -174,8 +174,8 @@ class LayoutPattern2 extends PatternShape {
             for (const d of this.stitchData) {
                 stitches = this.stitches(d, 6, 8, true)
                 for (let st of stitches) {
-                    st[0].add(random(-threadSize, threadSize))
-                    st[1].add(random(-threadSize, threadSize))
+                    st[0].add(R.random(-threadSize, threadSize))
+                    st[1].add(R.random(-threadSize, threadSize))
                 }
             }
         }
