@@ -1,24 +1,32 @@
 [
     {
         "type": "enum",
-        "name": "composition",
-        "options": [
-            "bleach_gradient",
-            "bleach_large",
-            "bleach_noise",
-            "strips",
-            "checkers",
-            "painters_camo",
-            "painters_pollock"
-        ]
+        "name": "Composition",
+        "options": [ "Patchie", "Distressed", "Layered", "Fringes"]
     },
     {
         "type": "enum",
-        "name": "clr",
-        "options": [
-            "indigo",
-            "black",
-            "colorful"
-        ]
+        "name": "Color",
+        "options": [ "Indigo", "Black", "Colored" ]
+    },
+    {
+        "type": "enum",
+        "name": "Dye Pattern",
+        "options": [ "Plain", "Bleaches", "Jailhouse Strips", "Checkers", "Camou", "Painters Pants", "Tie Dye" ]
+    },
+    {
+        "type": "enum",
+        "name": "Second Dye Pattern",
+        "options": [ "Plain", "Bleaches", "Jailhouse Strips", "Checkers", "Camou", "Painters Pants", "Tie Dye" ]
+    },
+    {
+        "type": "enum",
+        "name": "Weave",
+        "options": [ "Special" , "Twill"]
+    },
+    {
+        "type": "enum",
+        "name": "Seams",
+        "options": [ "Black", "White", "Red" , "Mustard"]
     }
 ]

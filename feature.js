@@ -48,54 +48,54 @@ function calculateFeatures(tokenData) {
         random_in = (minMax) => this.random_num(minMax[0], minMax[1])
     }
 
-    function initPainters(colorFunc) {
-        for (let i = 0; i < 2; i++)
-            paintersLayers.push({
-                s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), x: [R.random(0, 120), 360, R.random(120, 360)]
-            })
+    // ---------------------- COLOR FUNCS ----------------------
 
-        if (colorFunc == 'painters_pollock') {
-            for (let i = 0; i < 150; i++) {
-                const x = R.random_choice([0,1])
-                const pos = [R.random(baseWidth), R.random(baseHeight)]
-                const dir = [R.random(-.1, .1), R.random(-.1, .1)]
-                const l = R.random(50, 250)
-                let noiseVal = R.random(100)
-                for (let j = 0; j < l; j++) {
-                    const d = R.random(-4, 4)
+    const getColorFunc = (R, specialWeave) => {
+        let r = R.random_dec()
+        if (r < 0.5) return 'Plain'
+
+        let options = ["Bleaches", "Bleaches", "Bleaches_large", "Jailhouse Strips", "Checkers", 'Camou', 'Painters Pants', 'Tie Dye']
+        if (specialWeave) options = ['Bleaches', 'Bleaches_large', 'Jailhouse Strips', 'Tie Dye']
+        res = R.random_choice(options)
+        if (res == 'Bleaches_large') {
+            x = R.random(20, 100)
+            res = "Bleaches"
+        }
+        if (res == 'Strips') x = R.random(3)
+        if (['Painters Pants', 'Tie Dye', 'Camou'].includes(res)) {
+            x = { s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), color: [R.random(0, 120), 360, R.random(120, 360)] }
+            x = { s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), color: [R.random(0, 120), 360, R.random(120, 360)] }
+            if (res == 'Painters Pants') {
+                for (let i = 0; i < 150; i++) {
+                    x = R.random_choice([color(0), color(255)])
+                    x = [R.random(baseWidth), R.random(baseHeight)]
+                    x = [R.random(-.1, .1), R.random(-.1, .1)]
+                    x = R.random(50, 250)
+                    x = R.random(100)
+                    for (let j = 0; j < l; j++) {
+                        x = R.random(-4, 4)
+                    }
                 }
             }
         }
-    }
-
-    function initColorFunc(R, specialWeave) {
-        let res = null
-        let r = R.random_dec()
-        if (r < 0.6) res = null
-        else {
-            let options = ['bleach_gradient', 'bleach_large', 'bleach_noise', 'strips', 'checkers', 'painters_camo', 'painters_pollock']
-            if (specialWeave) options = ['bleach_gradient', 'bleach_large', 'strips']
-            res = R.random_choice(options)
-            if (res == 'painters_pollock' || res == 'painters_camo') initPainters(R, res)
-        }
         return res
     }
 
-    const initBaseColor = (R) => {
-        let res = ''
+    const getColors = (R) => {
         const r = R.random_dec()
         if (r < 0.7) {
-            denimColor = [R.random(200, 250), 360, R.random(180, 360)]
-            patchStitchColor = R.random_choice([1, 2, 3])
-            res = 'indigo'
+            x = [R.random(200, 250), 360, R.random(180, 360)]
+            patchStitch = R.random_choice(['Red', 'Black', 'White'])
+            return { color: 'Indigo', denimStitch: 'Mustard', patchStitch }
         } else if (r < 0.8) {
-            res = 'black'
+            return { color: 'Black', denimStitch: 'White', patchStitch: 'Black' }
         } else {
-            denimColor = [R.random(0, 70), R.random(200, 360), R.random(100, 250)]
-            res = 'colorful'
+            x = [R.random(0, 70), R.random(200, 360), R.random(100, 250)]
+            return { color: 'Colored', denimStitch: 'White', patchStitch: 'Black' }
         }
-        return res
     }
+
+    // ---------------------- WEAVE FUNCS ----------------------
 
     function initDenimParams(R) {
         let specialWeave = false
@@ -115,11 +115,28 @@ function calculateFeatures(tokenData) {
     x = R.random(2.5, 3.5)
 
     specialWeave = initDenimParams(R)
-    clr = initBaseColor(R)
-    colored = initColorFunc(R, specialWeave)
+    colors = getColors(R)
+    dyePattern1 = getColorFunc(R, specialWeave)
+    dyePattern2 = "None"
+    seams = "None"
 
-    let composition = R.random_choice(['divide', 'patches', 'rips'])
+    let composition = R.random_choice(['Layered', 'Patchie', 'Distressed'])
+    if (composition == 'Layered') {
+        dyePattern2 = getColorFunc(R, specialWeave)
+        seams = colors.denimStitch
+        x = R.random() < 0.5
+        const withFringe = R.random() < 0.5
+        if (withFringe) composition = "Fringes"
+    } else if (composition == 'Patchie') {
+        seams = colors.patchStitch
+    } else if (composition == 'Distressed') {
+    }
     return {
-        composition, clr
+        "Composition": composition,
+        "Color": colors.color,
+        "Dye Pattern": dyePattern1,
+        "Second Dye Pattern": dyePattern2,
+        "Weave": specialWeave ? "Special" : "Normal",
+        "Seams": seams,
     }
 }

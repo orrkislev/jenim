@@ -1,5 +1,4 @@
 function roundPatch(size, position = v_rel(0.5, 0.5), color) {
-    print('round patch')
     let ps = []
     ps = getEllipse(size * R.random(0.8, 1.2) * threadSize, size * R.random(0.8, 1.2) * threadSize, 45)
     ps.forEach(p => p.mult(R.random(.8, 2)))
@@ -9,7 +8,6 @@ function roundPatch(size, position = v_rel(0.5, 0.5), color) {
 }
 
 function rectPatch(color) {
-    print('rect patch')
     const rectPattern = new SquarePatternShape(R.random(baseWidth), R.random(baseWidth), R.random(100, 600), R.random(100, 600))
     rectPattern.rotate(R.random(-15, 15))
     ps = rectPattern.ps

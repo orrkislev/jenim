@@ -49,8 +49,8 @@ class Random {
       return list[this.random_int(0, list.length - 1)];
   }
 
-  random = (a = 1, b = 0) => this.random_num(a,b)
-  random_in = (minMax) => this.random_num(minMax[0], minMax[1])
+  random(a = 1, b = 0){ return this.random_num(a,b) }
+  random_in(minMax){ return this.random_num(minMax[0], minMax[1]) }
 }
 
 let R = new Random()

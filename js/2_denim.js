@@ -347,29 +347,29 @@ class Denim {
         gh.noStroke()
         const newPattern = new LayoutPattern2(pattern.ps)
 
-        const stitchPlaces = R.random() < 0.5 ? [15] : [7, 35]
+        const stitchPlaces = R.random() < 0.5 ? [12] : [9, 25]
 
-        gh.fill(255, 100)
+        gh.fill(255, 50)
         newPattern.ps = pattern.getOffset(0)
-        newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(6) * initialThreadSize))
-        gh.fill(255, 20)
+        newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(5) * initialThreadSize))
+        gh.fill(255, 10)
         for (const stitchPlace of stitchPlaces) {
-            newPattern.ps = pattern.getOffset(stitchPlace + 5)
-            newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(6) * initialThreadSize))
+            newPattern.ps = pattern.getOffset(stitchPlace + 1)
+            newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(5) * initialThreadSize))
         }
 
-        gh.fill(0, 20)
+        gh.fill(0, 10)
         for (const stitchPlace of stitchPlaces) {
             newPattern.ps = pattern.getOffset(stitchPlace)
-            newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(9)) * initialThreadSize)
+            newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(7)) * initialThreadSize)
         }
 
         for (let i = 0; i < stitchPlaces.length; i++) {
-            newPattern.ps = pattern.getOffset(stitchPlaces[i] - 15)
+            newPattern.ps = pattern.getOffset(stitchPlaces[i] - 12)
             newPattern.getCurve().forEach((p, i) => {
                 const s = (sin(i * 8) + 1) / 2
                 gh.fill(255 * s, 7)
-                gh.circle(p.x, p.y, R.random(5, 25) * initialThreadSize)
+                gh.circle(p.x, p.y, R.random(4, 20) * initialThreadSize)
             })
         }
 
@@ -381,7 +381,7 @@ class Denim {
                     if (alpha(c) > 0) {
                         loop.age = (brightness(c) / 360) * (alpha(c) / 255)
                         if (loop.yellow) loop.yellow = 0
-                        loop.darkness = 0.25 - (brightness(c) / 360) * (alpha(c) / 255) / 4
+                        loop.darkness = .25 - (brightness(c) / 360) * (alpha(c) / 255) / 4
                     }
                 }
             })

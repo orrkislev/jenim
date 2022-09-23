@@ -167,7 +167,7 @@ class LayoutPattern2 extends PatternShape {
         if (!this.stitchType) return
         let stitches = []
         for (const d of this.stitchData) {
-            stitches = [...stitches,...this.stitches(d, 7, 6)]
+            stitches = [...stitches,...this.stitches(d, 5, 5)]
         }
 
         if (this.stitchType == stitchTypes.HANDMADE) {

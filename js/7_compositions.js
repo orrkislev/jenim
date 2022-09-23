@@ -12,10 +12,11 @@ async function patches() {
         if (R.random_dec() < 0.5) ptchs.push(roundPatch(baseWidth * R.random(0.1, 0.25), v_rel(R.random(.2, .8), R.random(.2, .8)), denimColor))
         // if (R.random_dec() < 0.5) ptchs.push(roundPatch(R.random(30, 250), v_rel(R.random(.2, .8), R.random(.2, .8)), denimColor))
         else ptchs.push(rectPatch(denimColor))
+        if (i==0) ptchs[i].fringe = true
     }
 
     denim.calc().makeRips()
-    applyColorFunc(denim, globalColorFunc)
+    applyColorFunc(denim, dyePattern1)
 
     for (let i=0;i<ptchs.length;i++) applyPatch3dEffect(ptchs[i].denim, denim)
 
@@ -40,7 +41,7 @@ async function largeRips() {
     ripNoiseScale = [R.random(4, 8), R.random(4, 8)]
     denim2.ripThreshold = R.random(.3, .5)
     denim2.calc().makeRips()
-    applyColorFunc(denim2, globalColorFunc)
+    applyColorFunc(denim2, dyePattern1)
     denim2.dropShadowOn([denim])
 
     background(BG)
@@ -49,6 +50,8 @@ async function largeRips() {
 }
 
 async function withDivide() {
+    dyePattern2 = getColorFunc()
+    
     const flipped = R.random() < 0.5
     const withFringe = R.random() < 0.5
     const isHorizontal = R.random() < 0.5
@@ -74,6 +77,8 @@ async function withDivide() {
         middlePoint.add(dir.copy().rotate(90).mult(R.random(-.2, .2)))
         middlePoints.push(middlePoint)
     }
+    middlePoints.push(end)
+    middlePoints.unshift(start)
 
     let corner1, corner2
     if (isHorizontal) {
@@ -81,20 +86,22 @@ async function withDivide() {
             corner1 = v(-baseWidth * .2, -baseHeight * .2)
             corner2 = v(baseWidth * 1.2, -baseHeight * .2)
         } else {
-            corner1 = v(-baseWidth * .2, baseHeight * 1.2)
-            corner2 = v(baseWidth * 1.2, baseHeight * 1.2)
+            middlePoints.reverse()
+            corner1 = v(baseWidth * 1.2, baseHeight * 1.2)
+            corner2 = v(-baseWidth * .2, baseHeight * 1.2)
         }
     } else {
         if (R.random() < 0.5) {
-            corner1 = v(-baseWidth * .2, -baseHeight * .2)
-            corner2 = v(-baseWidth * .2, baseHeight * 1.2)
+            middlePoints.reverse()
+            corner1 = v(-baseWidth * .2, baseHeight * 1.2)
+            corner2 = v(-baseWidth * .2, -baseHeight * .2)
         } else {
             corner1 = v(baseWidth * 1.2, -baseHeight * .2)
             corner2 = v(baseWidth * 1.2, baseHeight * 1.2)
         }
     }
 
-    const points = [corner1, start, ...middlePoints, end, corner2]
+    const points = [corner1, ...middlePoints, corner2]
 
     pattern_top = new LayoutPattern2(points).fillet(50)
 
@@ -104,9 +111,8 @@ async function withDivide() {
     denim_top.ripThreshold = R.random(.1, .45)
     denim_top.calc().makeRips()
 
-    applyColorFunc(denim_bg, globalColorFunc)
-    initColorFunc()
-    applyColorFunc(denim_top, globalColorFunc)
+    applyColorFunc(denim_bg, dyePattern1)
+    applyColorFunc(denim_top, dyePattern2)
 
     denim_top.foldedStitchings()
     denim_top.dropShadowOn([denim_bg])
