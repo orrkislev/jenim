@@ -43,9 +43,10 @@ async function makeImage() {
 
     initDenimParams()
     initBaseColor()
+
+    composition = R.random_choice([withDivide, patches, largeRips])
     dyePattern1 = getColorFunc()
 
-    let composition = R.random_choice(compositions)
     print(composition.name)
     // composition = withDivide
     await composition()

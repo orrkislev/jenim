@@ -124,8 +124,6 @@ function crossStitches(pattern, h, stitchPattern) {
     return stitches
 }
 
-const compositions = [withDivide, patches, largeRips]
-
 async function patches() {
     pattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
     denim = new Denim(pattern, denimColor).rotate(R.random(360))
@@ -298,9 +296,10 @@ async function makeImage() {
 
     initDenimParams()
     initBaseColor()
+
+    composition = R.random_choice([withDivide, patches, largeRips])
     dyePattern1 = getColorFunc()
 
-    let composition = R.random_choice(compositions)
     print(composition.name)
     // composition = withDivide
     await composition()

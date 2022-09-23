@@ -1,5 +1,3 @@
-const compositions = [withDivide, patches, largeRips]
-
 async function patches() {
     pattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
     denim = new Denim(pattern, denimColor).rotate(R.random(360))
