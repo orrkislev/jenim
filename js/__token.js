@@ -10,7 +10,7 @@ function genTokenData(projectNum) {
 }
 
 
-// let tokenData = genTokenData()
+let tokenData = genTokenData()
 
 //   tokenData = {
 //       hash: "0x057fdcf3d11bb1e95bf8300abcd6197e0e191b11cf64986ccf17e4735ea22abe",
