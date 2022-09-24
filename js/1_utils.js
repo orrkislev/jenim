@@ -66,8 +66,12 @@ Array.prototype.rotate = function rotate() {
   return this[0]
 }
 
-const v = (x, y) => createVector(x, y)
-const v_rel = (x, y) => createVector(x * baseWidth, y * baseHeight)
+const v = (x, y) => createVector(x, y),
+      v_rel = (x, y) => createVector(x * baseWidth, y * baseHeight),
+      vlerp = p5.Vector.lerp,
+      vdist = p5.Vector.dist
+      vadd = p5.Vector.add,
+      vsub = p5.Vector.sub
 
 // --- DRAW
 
@@ -101,7 +105,7 @@ function getEllipse(w, h, step = 1, s = 0, e = 360) {
   return ps
 }
 
-function makeCurve(crv) {
+function toCrv(crv) {
   crv.push(crv[crv.length - 1])
   crv.splice(0, 0, crv[0])
 

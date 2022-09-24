@@ -54,30 +54,10 @@ function calculateFeatures(tokenData) {
         let r = R.random_dec()
         if (r < 0.5) return 'Plain'
 
-        let options = ["Bleaches", "Bleaches", "Bleaches_large", "Jailhouse Strips", "Checkers", 'Camou', 'Painters Pants', 'Tie Dye']
-        if (specialWeave) options = ['Bleaches', 'Bleaches_large', 'Jailhouse Strips', 'Tie Dye']
+        let options = ["Bleaches", "Bleaches", "Bleaches", "Jailhouse Strips", "Checkers", 'Camou', 'Painters Pants', 'Tie Dye']
+        if (composition == "Layered") options = ["Bleaches", 'Bleaches', 'Bleaches', 'Jailhouse Strips', 'Checkers']
+        if (specialWeave) options = ['Bleaches', 'Bleaches', 'Jailhouse Strips', 'Tie Dye']
         res = R.random_choice(options)
-        if (res == 'Bleaches_large') {
-            x = R.random(20, 100)
-            res = "Bleaches"
-        }
-        if (res == 'Strips') x = R.random(3)
-        if (['Painters Pants', 'Tie Dye', 'Camou'].includes(res)) {
-            x = { s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), color: [R.random(0, 120), 360, R.random(120, 360)] }
-            x = { s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), color: [R.random(0, 120), 360, R.random(120, 360)] }
-            if (res == 'Painters Pants') {
-                for (let i = 0; i < 150; i++) {
-                    x = R.random_choice([color(0), color(255)])
-                    x = [R.random(baseWidth), R.random(baseHeight)]
-                    x = [R.random(-.1, .1), R.random(-.1, .1)]
-                    x = R.random(50, 250)
-                    x = R.random(100)
-                    for (let j = 0; j < l; j++) {
-                        x = R.random(-4, 4)
-                    }
-                }
-            }
-        }
         return res
     }
 
@@ -86,9 +66,9 @@ function calculateFeatures(tokenData) {
         if (r < 0.7) {
             x = [R.random(200, 250), 360, R.random(180, 360)]
             patchStitch = R.random_choice(['Red', 'Black', 'White'])
-            return { color: 'Indigo', denimStitch: 'Mustard', patchStitch }
+            return { color: 'Indigo', denimStitch: 'Ochre', patchStitch }
         } else if (r < 0.8) {
-            return { color: 'Black', denimStitch: 'White', patchStitch: 'Black' }
+            return { color: 'Charcoal', denimStitch: 'White', patchStitch: 'Black' }
         } else {
             x = [R.random(0, 70), R.random(200, 360), R.random(100, 250)]
             return { color: 'Colored', denimStitch: 'White', patchStitch: 'Black' }
@@ -116,11 +96,11 @@ function calculateFeatures(tokenData) {
 
     specialWeave = initDenimParams(R)
     colors = getColors(R)
+    composition = R.random_choice(['Layered', 'Patchie', 'Distressed'])
     dyePattern1 = getColorFunc(R, specialWeave)
     dyePattern2 = "None"
     seams = "None"
 
-    let composition = R.random_choice(['Layered', 'Patchie', 'Distressed'])
     if (composition == 'Layered') {
         dyePattern2 = getColorFunc(R, specialWeave)
         seams = colors.denimStitch
@@ -128,15 +108,17 @@ function calculateFeatures(tokenData) {
         const withFringe = R.random() < 0.5
         if (withFringe) composition = "Fringes"
     } else if (composition == 'Patchie') {
+        const isMending = R.random() < .5
+        if (isMending) composition = "Visible Mending"
         seams = colors.patchStitch
     } else if (composition == 'Distressed') {
     }
     return {
         "Composition": composition,
-        "Color": colors.color,
+        "Tinting": colors.color,
         "Dye Pattern": dyePattern1,
         "Second Dye Pattern": dyePattern2,
-        "Weave": specialWeave ? "Special" : "Normal",
+        "Weave": specialWeave ? "Odd" : "Twill",
         "Seams": seams,
     }
 }

@@ -2,12 +2,12 @@
     {
         "type": "enum",
         "name": "Composition",
-        "options": [ "Patchie", "Distressed", "Layered", "Fringes"]
+        "options": [ "Patchie", "Distressed", "Layered", "Fringes", "Visible Mending"]
     },
     {
         "type": "enum",
-        "name": "Color",
-        "options": [ "Indigo", "Black", "Colored" ]
+        "name": "Tinting",
+        "options": [ "Indigo", "Charcoal", "Colored" ]
     },
     {
         "type": "enum",
@@ -27,6 +27,6 @@
     {
         "type": "enum",
         "name": "Seams",
-        "options": [ "Black", "White", "Red" , "Mustard"]
+        "options": [ "Black", "White", "Red" , "Ochre"]
     }
 ]

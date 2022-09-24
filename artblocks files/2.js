@@ -39,20 +39,25 @@ class PatternShape {
         this.rotate(rotation)
         return cont
     }
+    bounds() {
+        return {
+            top: this.ps.reduce((a, b) => a.y < b.y ? a : b).y,
+            bottom: this.ps.reduce((a, b) => a.y > b.y ? a : b).y,
+            left: this.ps.reduce((a, b) => a.x < b.x ? a : b).x,
+            right: this.ps.reduce((a, b) => a.x > b.x ? a : b).x
+        }
+    }
     containingSquare() {
-        const topMost = this.ps.reduce((a, b) => a.y < b.y ? a : b).y
-        const bottomMost = this.ps.reduce((a, b) => a.y > b.y ? a : b).y
-        const leftMost = this.ps.reduce((a, b) => a.x < b.x ? a : b).x
-        const rightMost = this.ps.reduce((a, b) => a.x > b.x ? a : b).x
-        return new SquarePatternShape(leftMost, topMost, rightMost - leftMost, bottomMost - topMost)
+        const bounds = this.bounds()
+        return new SquarePatternShape(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top)
     }
-    makeCurve() {
-        this.ps = this.getCurve()
+    toCrv() {
+        this.ps = this.crv()
     }
-    getCurve() {
+    crv() {
         let crv = []
         for (let i = 0; i < this.ps.length; i++) {
-            const crvPart = makeCurve([this.ps[i], this.ps[(i + 1) % this.ps.length]])
+            const crvPart = toCrv([this.ps[i], this.ps[(i + 1) % this.ps.length]])
             crv = crv.concat(crvPart.slice(0, crvPart.length - 1))
         }
         return crv
@@ -73,10 +78,10 @@ class PatternShape {
             const p1 = this.ps[i]
             const p2 = this.ps[(i + 1) % this.ps.length]
             const p3 = this.ps[(i + 2) % this.ps.length]
-            const dir1 = p5.Vector.sub(p2, p1).setMag(r)
-            const dir2 = p5.Vector.sub(p2, p3).setMag(r)
-            newPs.push(p5.Vector.add(p2, dir2))
-            newPs.push(p5.Vector.add(p2, dir1))
+            const dir1 = vsub(p2, p1).setMag(r)
+            const dir2 = vsub(p2, p3).setMag(r)
+            newPs.push(vadd(p2, dir2))
+            newPs.push(vadd(p2, dir1))
         }
         this.ps = newPs
         return this
@@ -112,18 +117,18 @@ class LayoutPattern2 extends PatternShape {
         newPs = newPs.map((p1, i) => {
             const p2 = this.ps[(i + 1) % this.ps.length]
             const p3 = this.ps[(i + 2) % this.ps.length]
-            const dir1 = p5.Vector.sub(p2, p1)
-            const dir2 = p5.Vector.sub(p2, p3)
+            const dir1 = vsub(p2, p1)
+            const dir2 = vsub(p2, p3)
             let angle = dir2.angleBetween(dir1)
             if (angle < 0) angle += 360
             dir2.rotate(angle / 2).setMag(h * initialThreadSize)
-            return p5.Vector.add(p2, dir2)
+            return vadd(p2, dir2)
         })
         return newPs
     }
     stitches(h, l1, l2, handMade = false) {
         const offsetPattern = new LayoutPattern2(this.getOffset(h))
-        const crv = offsetPattern.getCurve()
+        const crv = offsetPattern.crv()
         const stitches = []
         l1 *= initialThreadSize
         l2 *= initialThreadSize
@@ -139,11 +144,11 @@ class LayoutPattern2 extends PatternShape {
     dropShadowOn(denim) {
         const shading = createGraphics(baseWidth, baseHeight)
         shading.noStroke()
-        shading.fill(0, 5)
+        shading.fill(0, 10)
         shading.beginShape()
-        this.getCurve().forEach(p => shading.vertex(p.x, p.y))
+        this.crv().forEach(p => shading.vertex(p.x, p.y))
         shading.endShape()
-        this.getCurve().forEach(p => shading.circle(p.x + 5, p.y + 5, threadSize * R.random(10)))
+        this.crv().forEach(p => shading.circle(p.x + 3, p.y + 3, threadSize * R.random(12)))
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {
@@ -151,7 +156,7 @@ class LayoutPattern2 extends PatternShape {
                     const c = shading.get(p.x, p.y)
                     if (alpha(c) > 0) {
                         // loop.age = 1 - alpha(c) / 255
-                        loop.darkness = .2 - (alpha(c) / 255) / 5
+                        loop.darkness = .05 - (alpha(c) / 255) / 20
                     }
                 }
             })
@@ -167,7 +172,7 @@ class LayoutPattern2 extends PatternShape {
         if (!this.stitchType) return
         let stitches = []
         for (const d of this.stitchData) {
-            stitches = [...stitches,...this.stitches(d, 5, 5)]
+            stitches = [...stitches, ...this.stitches(d, 5, 5)]
         }
 
         if (this.stitchType == stitchTypes.HANDMADE) {
@@ -202,8 +207,8 @@ class SquarePatternShape extends LayoutPattern2 {
     }
     getDimension() {
         const pos = this.ps[0]
-        const w = p5.Vector.dist(this.ps[0], this.ps[3])
-        const h = p5.Vector.dist(this.ps[0], this.ps[1])
+        const w = vdist(this.ps[0], this.ps[3])
+        const h = vdist(this.ps[0], this.ps[1])
         return { pos, w, h, rotation: this.rotation }
     }
 }
@@ -228,18 +233,22 @@ function bleach_gradient() {
     }
 }
 function bleach_noise() {
-    const noiseScale = 80 * initialThreadSize
+    const noiseScale = R.random(50,150) * initialThreadSize
+    const xoffset = R.random(10000)
+    const yoffset = R.random(10000)
     return (clr, x, y) => {
-        const v = noise(x / noiseScale, y / noiseScale, R.random(0.3))
+        const v = noise(x / noiseScale + xoffset, y / noiseScale + yoffset, R.random(0.3))
         if (v < 0.5) clr = lerpColor(clr, color(255), v + 0.5)
         return clr
     }
 }
 function bleach_large(){
     const bleachScale = R.random(20, 100) * initialThreadSize
+    const xoffset = R.random(10000)
+    const yoffset = R.random(10000)
     return (clr, x, y) => {
         val = y / baseHeight
-        if (noise(x / bleachScale, y / bleachScale) < val) clr = lerpColor(clr, color(255), val)
+        if (noise(x / bleachScale + xoffset, y / bleachScale + yoffset) < val) clr = lerpColor(clr, color(255), val)
         return clr
     }
 }
@@ -315,7 +324,8 @@ function getColorFunc() {
     let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock, painters_grad]
     if (composition.name == "withDivide") options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers]
     if (specialWeave) options = [bleach_gradient, bleach_large, strips, painters_grad]
-    return R.random_choice(options)()
+    res = R.random_choice(options)
+    return res
 }
 
 
@@ -325,6 +335,7 @@ function getColorFunc() {
 
 function applyColorFunc(denim, colorFunc) {
     if (colorFunc) {
+        colorFunc = colorFunc()
         const offsetPosX = R.random(-35, 35)
         const offsetPosY = R.random(-35, 35)
         denim.weft.forEach(col => {
@@ -393,7 +404,7 @@ async function franzim(pos, dir, l) {
         dir.rotate(angle2 / 10 + R.random(-5, 5))
         ps.push(ps[ps.length - 1].copy().add(dir))
     }
-    ps = makeCurve(ps)
+    ps = toCrv(ps)
 
     for (let i = 0; i < ps.length; i++) {
         await burn(ps[i].copy().add(6 * i / ps.length, 6 * i / ps.length).mult(globalScale), this.threadSize * globalScale, 7)
@@ -414,8 +425,8 @@ class Loop {
     wiggle() {
         const p1 = this.ps[0]
         const p2 = this.ps[this.ps.length - 1]
-        const mid = p5.Vector.add(p1, p2).div(2)
-        const dir = p5.Vector.sub(p1, p2).rotate(90).normalize().mult(p5.Vector.dist(p1, p2) * R.random(-.05, .05))
+        const mid = vadd(p1, p2).div(2)
+        const dir = vsub(p1, p2).rotate(90).normalize().mult(vdist(p1, p2) * R.random(-.05, .05))
         mid.add(dir)
         this.ps = [p1, mid, p2]
         return this
@@ -434,17 +445,17 @@ class Loop {
     async draw() {
         if (this.ps.length <= 1) return
         if (this.withShadow)
-            for (const p of makeCurve(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 10)
+            for (const p of toCrv(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 10)
         if (this.age) this.color = lerpColor(this.color, color(R.random_choice(natural)), this.age)
         if (this.yellow) this.color = lerpColor(this.color, color('#ebe1a2'), this.yellow)
-        // if (this.darkness != 0) this.color = neighborColor(this.color, 0, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
-        if (this.darkness != 0) this.color = lerpColor(this.color, color(0), this.darkness)
+        if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
+        // if (this.darkness != 0) this.color = lerpColor(this.color, color(0), this.darkness)
         threadSize = this.threadSize
         await thread(this.ps, this.color, 3)
     }
     dir() {
         if (this.ps.length <= 1) return v(0, 0)
-        return p5.Vector.sub(this.ps[this.ps.length - 1], this.ps[0])
+        return vsub(this.ps[this.ps.length - 1], this.ps[0])
     }
 }
 
@@ -456,7 +467,7 @@ async function thread(ps, clr, fluff = 1, alpha = 120) {
     noStroke()
     let crv = newPs.map(p => p.copy())
     if (crv.length < 2 || crvLength(crv) < 1) return
-    if (newPs.length < 10) crv = makeCurve(newPs)
+    if (newPs.length < 10) crv = toCrv(newPs)
     fill(clr)
     crv.forEach(p => circle(p.x, p.y, threadSize * globalScale))
     noFill()

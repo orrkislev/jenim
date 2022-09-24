@@ -18,18 +18,22 @@ function bleach_gradient() {
     }
 }
 function bleach_noise() {
-    const noiseScale = 80 * initialThreadSize
+    const noiseScale = R.random(50,150) * initialThreadSize
+    const xoffset = R.random(10000)
+    const yoffset = R.random(10000)
     return (clr, x, y) => {
-        const v = noise(x / noiseScale, y / noiseScale, R.random(0.3))
+        const v = noise(x / noiseScale + xoffset, y / noiseScale + yoffset, R.random(0.3))
         if (v < 0.5) clr = lerpColor(clr, color(255), v + 0.5)
         return clr
     }
 }
 function bleach_large(){
     const bleachScale = R.random(20, 100) * initialThreadSize
+    const xoffset = R.random(10000)
+    const yoffset = R.random(10000)
     return (clr, x, y) => {
         val = y / baseHeight
-        if (noise(x / bleachScale, y / bleachScale) < val) clr = lerpColor(clr, color(255), val)
+        if (noise(x / bleachScale + xoffset, y / bleachScale + yoffset) < val) clr = lerpColor(clr, color(255), val)
         return clr
     }
 }
@@ -105,7 +109,8 @@ function getColorFunc() {
     let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock, painters_grad]
     if (composition.name == "withDivide") options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers]
     if (specialWeave) options = [bleach_gradient, bleach_large, strips, painters_grad]
-    return R.random_choice(options)()
+    res = R.random_choice(options)
+    return res
 }
 
 
@@ -115,6 +120,7 @@ function getColorFunc() {
 
 function applyColorFunc(denim, colorFunc) {
     if (colorFunc) {
+        colorFunc = colorFunc()
         const offsetPosX = R.random(-35, 35)
         const offsetPosY = R.random(-35, 35)
         denim.weft.forEach(col => {

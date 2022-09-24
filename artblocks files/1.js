@@ -66,8 +66,12 @@ class Random {
     return this[0]
   }
   
-  const v = (x, y) => createVector(x, y)
-  const v_rel = (x, y) => createVector(x * baseWidth, y * baseHeight)
+  const v = (x, y) => createVector(x, y),
+        v_rel = (x, y) => createVector(x * baseWidth, y * baseHeight),
+        vlerp = p5.Vector.lerp,
+        vdist = p5.Vector.dist
+        vadd = p5.Vector.add,
+        vsub = p5.Vector.sub
   
   // --- DRAW
   
@@ -101,7 +105,7 @@ class Random {
     return ps
   }
   
-  function makeCurve(crv) {
+  function toCrv(crv) {
     crv.push(crv[crv.length - 1])
     crv.splice(0, 0, crv[0])
   
@@ -154,8 +158,8 @@ class Random {
 }
 
 class Denim {
-    constructor(layoutPattern, color, age = 0.5) {
-        this.layoutPattern = layoutPattern
+    constructor(lp, color, age = 0.5) {
+        this.lp = lp
         this.color = color
         this.visibleWhite = R.random(0.5, 1)
         this.darkness = R.random(0.3)
@@ -192,7 +196,7 @@ class Denim {
         if (!args.dontWeft) await this.drawWeft()
         if (!args.dontFringe) await this.extendWarps()
         if (this.hasRips) await this.drawRips()
-        if (!args.dontStitch) await this.layoutPattern.drawStitches(this)
+        if (!args.dontStitch) await this.lp.drawStitches(this)
     }
 
 
@@ -200,7 +204,7 @@ class Denim {
     // -------------  W A R P ----------------------------
     // ---------------------------------------------------
     makeWarp() {
-        const containingSquare = this.layoutPattern.rotatedContainingSquare(this.rotation)
+        const containingSquare = this.lp.rotatedContainingSquare(this.rotation)
         const { pos, w, h, rotation } = containingSquare.getDimension()
         const dir1 = p5.Vector.fromAngle(radians(rotation)).setMag(w)
         const dir2 = dir1.copy().rotate(PI / 2).normalize()
@@ -208,7 +212,7 @@ class Denim {
         const v1 = pos.copy().add(dir2.copy().setMag(initialOffsetSize).mult(-1))
         const v2 = v1.copy().add(dir1).add()
         const numPoints = 15
-        const firstRow = Array(numPoints).fill(0).map((a, i) => p5.Vector.lerp(v1, v2, i / (numPoints - 1)))
+        const firstRow = Array(numPoints).fill(0).map((a, i) => vlerp(v1, v2, i / (numPoints - 1)))
         firstRow.forEach(p => p.add(dir2.copy().mult(R.random(-initialOffsetSize, initialOffsetSize))))
         this.warp = [firstRow]
         let addRows = true
@@ -219,10 +223,10 @@ class Denim {
             this.warp.push(newRow)
             addRows = false
             newRow.forEach((p, i) => {
-                if (p5.Vector.dist(p, firstRow[i]) < h) addRows = true
+                if (vdist(p, firstRow[i]) < h) addRows = true
             })
         }
-        this.warp = this.warp.map(row => makeCurve(row))
+        this.warp = this.warp.map(row => toCrv(row))
     }
     async drawWarp() {
         let i = 0
@@ -236,11 +240,11 @@ class Denim {
     async extendWarps() {
         for (const row of this.warp) {
             if (R.random_dec() < this.extendChance) {
-                const dir1 = p5.Vector.sub(row[0], row[1])
+                const dir1 = vsub(row[0], row[1])
                 await franzim(row[0], dir1, threadSize * R.random_in(this.warpExtensions))
             }
             if (R.random_dec() < this.extendChance) {
-                const dir2 = p5.Vector.sub(row[row.length - 1], row[row.length - 2])
+                const dir2 = vsub(row[row.length - 1], row[row.length - 2])
                 await franzim(row[row.length - 1], dir2, threadSize * R.random_in(this.warpExtensions))
             }
             await timeout(0);
@@ -295,7 +299,7 @@ class Denim {
         for (const column of this.weft) {
             for (const loop of column) {
                 for (const p2 of loop.ps) {
-                    if (p2 && p5.Vector.dist(p1, p2) < 5) return loop
+                    if (p2 && vdist(p1, p2) < 5) return loop
                 }
             }
         }
@@ -306,9 +310,9 @@ class Denim {
     // -------------  E D I T ----------------------------
     // ---------------------------------------------------
     trim() {
-        this.warp = this.warp.map(row => row.filter(p => this.layoutPattern.pointInPattern(p)))
+        this.warp = this.warp.map(row => row.filter(p => this.lp.pointInPattern(p)))
         this.warp = this.warp.filter(row => row.length > 1)
-        this.weft = this.weft.map(col => col.filter(loop => loop.ps.filter(p => this.layoutPattern.pointInPattern(p)).length > 1))
+        this.weft = this.weft.map(col => col.filter(loop => loop.ps.filter(p => this.lp.pointInPattern(p)).length > 1))
         this.warp = this.warp.map(row => row.filter(p =>
             p.x >= -baseWidth * .1 && p.x <= baseWidth * 1.1 && p.y >= -baseHeight * .1 && p.y <= baseHeight * 1.1))
     }
@@ -353,19 +357,19 @@ class Denim {
                         if (l > this.ripMin && l < this.ripMax) {
                             let newPs = []
                             for (let h = 0; h <= 5; h++)
-                                newPs.push(p5.Vector.lerp(first, last, h / 5).add(0, R.random(-2, 4)))
-                            newPs = makeCurve(newPs)
+                                newPs.push(vlerp(first, last, h / 5).add(0, R.random(-2, 4)))
+                            newPs = toCrv(newPs)
                             row.splice(partIndexes[0], partIndexes[partIndexes.length - 1] - partIndexes[0], ...newPs)
                         }
                         if (l > this.ripMax) {
                             this.warpRips.push({
                                 pos: first,
-                                dir: p5.Vector.sub(second, first),
+                                dir: vsub(second, first),
                                 len: l * R.random(0.1, 0.5)
                             })
                             this.warpRips.push({
                                 pos: last,
-                                dir: p5.Vector.sub(secondToLast, last),
+                                dir: vsub(secondToLast, last),
                                 len: l * R.random(0.1, 0.5)
                             })
                             row.splice(partIndexes[0], partIndexes[partIndexes.length - 1] - partIndexes[0])
@@ -381,7 +385,7 @@ class Denim {
             const inHole = loop.ps.filter(p => !this.pointInRip(p)).length > 0
             if ((inHole && waitForRip) || (!inHole && !waitForRip)) {
                 let pos = loop.ps.filter(a => a != null)[0]
-                let dir = p5.Vector.sub(loop.ps[1], loop.ps[0])
+                let dir = vsub(loop.ps[1], loop.ps[0])
                 if (inHole) pos.add(dir)
                 else pos.sub(dir)
                 this.weftRips.push({
@@ -412,7 +416,7 @@ class Denim {
         for (const end of this.weftRips) {
             let c = color(this.color)
             this.weft.forEach(col => col.forEach(loop => loop.ps.forEach(p => {
-                if (p && p5.Vector.dist(p, end.pos) < 10)
+                if (p && vdist(p, end.pos) < 10)
                     c = loop.getFinalColor()
             })))
             c.setAlpha(50)
@@ -454,32 +458,12 @@ class Denim {
     }
 
     dropShadowOn(denims) {
-        const shading = createGraphics(baseWidth, baseHeight)
-        shading.noStroke()
-        shading.fill(0, 10)
-        this.weft.forEach(loop => {
-            loop.forEach(p => {
-                shading.circle(p.x + 10, p.y + 10, threadSize * R.random(10))
-            })
-        })
-        for (const denim of denims) {
-            denim.weft.forEach(col => {
-                col.forEach(loop => {
-                    if (loop.ps.length > 0) {
-                        const p = loop.ps[0]
-                        const c = shading.get(p.x, p.y)
-                        if (alpha(c) > 0) {
-                            // loop.age = 1 - alpha(c) / 255
-                            loop.darkness = .2 - (alpha(c) / 255) / 5
-                        }
-                    }
-                })
-            })
-        }
+        for (const denim of denims)
+            this.lp.dropShadowOn(denim)
     }
 
     foldedStitchings(pattern) {
-        if (!pattern) pattern = this.layoutPattern
+        if (!pattern) pattern = this.lp
 
         const gh = createGraphics(baseWidth, baseHeight)
         gh.noStroke()
@@ -487,24 +471,24 @@ class Denim {
 
         const stitchPlaces = R.random() < 0.5 ? [12] : [9, 25]
 
-        gh.fill(255, 50)
+        gh.fill(255, 100)
         newPattern.ps = pattern.getOffset(0)
-        newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(5) * initialThreadSize))
-        gh.fill(255, 10)
+        newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(5) * initialThreadSize))
+        gh.fill(255, 30)
         for (const stitchPlace of stitchPlaces) {
             newPattern.ps = pattern.getOffset(stitchPlace + 1)
-            newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(5) * initialThreadSize))
+            newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(5) * initialThreadSize))
         }
 
-        gh.fill(0, 10)
+        gh.fill(0, 30)
         for (const stitchPlace of stitchPlaces) {
             newPattern.ps = pattern.getOffset(stitchPlace)
-            newPattern.getCurve().forEach(p => gh.circle(p.x, p.y, R.random(7)) * initialThreadSize)
+            newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(7)) * initialThreadSize)
         }
 
         for (let i = 0; i < stitchPlaces.length; i++) {
             newPattern.ps = pattern.getOffset(stitchPlaces[i] - 12)
-            newPattern.getCurve().forEach((p, i) => {
+            newPattern.crv().forEach((p, i) => {
                 const s = (sin(i * 8) + 1) / 2
                 gh.fill(255 * s, 7)
                 gh.circle(p.x, p.y, R.random(4, 20) * initialThreadSize)
@@ -519,7 +503,7 @@ class Denim {
                     if (alpha(c) > 0) {
                         loop.age = (brightness(c) / 360) * (alpha(c) / 255)
                         if (loop.yellow) loop.yellow = 0
-                        loop.darkness = .25 - (brightness(c) / 360) * (alpha(c) / 255) / 4
+                        loop.darkness = .2 - (brightness(c) / 360) * (alpha(c) / 255) / 5
                     }
                 }
             })

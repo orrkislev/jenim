@@ -39,20 +39,25 @@ class PatternShape {
         this.rotate(rotation)
         return cont
     }
+    bounds() {
+        return {
+            top: this.ps.reduce((a, b) => a.y < b.y ? a : b).y,
+            bottom: this.ps.reduce((a, b) => a.y > b.y ? a : b).y,
+            left: this.ps.reduce((a, b) => a.x < b.x ? a : b).x,
+            right: this.ps.reduce((a, b) => a.x > b.x ? a : b).x
+        }
+    }
     containingSquare() {
-        const topMost = this.ps.reduce((a, b) => a.y < b.y ? a : b).y
-        const bottomMost = this.ps.reduce((a, b) => a.y > b.y ? a : b).y
-        const leftMost = this.ps.reduce((a, b) => a.x < b.x ? a : b).x
-        const rightMost = this.ps.reduce((a, b) => a.x > b.x ? a : b).x
-        return new SquarePatternShape(leftMost, topMost, rightMost - leftMost, bottomMost - topMost)
+        const bounds = this.bounds()
+        return new SquarePatternShape(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top)
     }
-    makeCurve() {
-        this.ps = this.getCurve()
+    toCrv() {
+        this.ps = this.crv()
     }
-    getCurve() {
+    crv() {
         let crv = []
         for (let i = 0; i < this.ps.length; i++) {
-            const crvPart = makeCurve([this.ps[i], this.ps[(i + 1) % this.ps.length]])
+            const crvPart = toCrv([this.ps[i], this.ps[(i + 1) % this.ps.length]])
             crv = crv.concat(crvPart.slice(0, crvPart.length - 1))
         }
         return crv
@@ -73,10 +78,10 @@ class PatternShape {
             const p1 = this.ps[i]
             const p2 = this.ps[(i + 1) % this.ps.length]
             const p3 = this.ps[(i + 2) % this.ps.length]
-            const dir1 = p5.Vector.sub(p2, p1).setMag(r)
-            const dir2 = p5.Vector.sub(p2, p3).setMag(r)
-            newPs.push(p5.Vector.add(p2, dir2))
-            newPs.push(p5.Vector.add(p2, dir1))
+            const dir1 = vsub(p2, p1).setMag(r)
+            const dir2 = vsub(p2, p3).setMag(r)
+            newPs.push(vadd(p2, dir2))
+            newPs.push(vadd(p2, dir1))
         }
         this.ps = newPs
         return this
@@ -112,18 +117,18 @@ class LayoutPattern2 extends PatternShape {
         newPs = newPs.map((p1, i) => {
             const p2 = this.ps[(i + 1) % this.ps.length]
             const p3 = this.ps[(i + 2) % this.ps.length]
-            const dir1 = p5.Vector.sub(p2, p1)
-            const dir2 = p5.Vector.sub(p2, p3)
+            const dir1 = vsub(p2, p1)
+            const dir2 = vsub(p2, p3)
             let angle = dir2.angleBetween(dir1)
             if (angle < 0) angle += 360
             dir2.rotate(angle / 2).setMag(h * initialThreadSize)
-            return p5.Vector.add(p2, dir2)
+            return vadd(p2, dir2)
         })
         return newPs
     }
     stitches(h, l1, l2, handMade = false) {
         const offsetPattern = new LayoutPattern2(this.getOffset(h))
-        const crv = offsetPattern.getCurve()
+        const crv = offsetPattern.crv()
         const stitches = []
         l1 *= initialThreadSize
         l2 *= initialThreadSize
@@ -139,11 +144,11 @@ class LayoutPattern2 extends PatternShape {
     dropShadowOn(denim) {
         const shading = createGraphics(baseWidth, baseHeight)
         shading.noStroke()
-        shading.fill(0, 5)
+        shading.fill(0, 10)
         shading.beginShape()
-        this.getCurve().forEach(p => shading.vertex(p.x, p.y))
+        this.crv().forEach(p => shading.vertex(p.x, p.y))
         shading.endShape()
-        this.getCurve().forEach(p => shading.circle(p.x + 5, p.y + 5, threadSize * R.random(10)))
+        this.crv().forEach(p => shading.circle(p.x + 3, p.y + 3, threadSize * R.random(12)))
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {
@@ -151,7 +156,7 @@ class LayoutPattern2 extends PatternShape {
                     const c = shading.get(p.x, p.y)
                     if (alpha(c) > 0) {
                         // loop.age = 1 - alpha(c) / 255
-                        loop.darkness = .2 - (alpha(c) / 255) / 5
+                        loop.darkness = .05 - (alpha(c) / 255) / 20
                     }
                 }
             })
@@ -167,7 +172,7 @@ class LayoutPattern2 extends PatternShape {
         if (!this.stitchType) return
         let stitches = []
         for (const d of this.stitchData) {
-            stitches = [...stitches,...this.stitches(d, 5, 5)]
+            stitches = [...stitches, ...this.stitches(d, 5, 5)]
         }
 
         if (this.stitchType == stitchTypes.HANDMADE) {
@@ -202,8 +207,8 @@ class SquarePatternShape extends LayoutPattern2 {
     }
     getDimension() {
         const pos = this.ps[0]
-        const w = p5.Vector.dist(this.ps[0], this.ps[3])
-        const h = p5.Vector.dist(this.ps[0], this.ps[1])
+        const w = vdist(this.ps[0], this.ps[3])
+        const h = vdist(this.ps[0], this.ps[1])
         return { pos, w, h, rotation: this.rotation }
     }
 }

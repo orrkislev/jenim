@@ -8,7 +8,7 @@ async function franzim(pos, dir, l) {
         dir.rotate(angle2 / 10 + R.random(-5, 5))
         ps.push(ps[ps.length - 1].copy().add(dir))
     }
-    ps = makeCurve(ps)
+    ps = toCrv(ps)
 
     for (let i = 0; i < ps.length; i++) {
         await burn(ps[i].copy().add(6 * i / ps.length, 6 * i / ps.length).mult(globalScale), this.threadSize * globalScale, 7)
@@ -29,8 +29,8 @@ class Loop {
     wiggle() {
         const p1 = this.ps[0]
         const p2 = this.ps[this.ps.length - 1]
-        const mid = p5.Vector.add(p1, p2).div(2)
-        const dir = p5.Vector.sub(p1, p2).rotate(90).normalize().mult(p5.Vector.dist(p1, p2) * R.random(-.05, .05))
+        const mid = vadd(p1, p2).div(2)
+        const dir = vsub(p1, p2).rotate(90).normalize().mult(vdist(p1, p2) * R.random(-.05, .05))
         mid.add(dir)
         this.ps = [p1, mid, p2]
         return this
@@ -49,17 +49,17 @@ class Loop {
     async draw() {
         if (this.ps.length <= 1) return
         if (this.withShadow)
-            for (const p of makeCurve(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 10)
+            for (const p of toCrv(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 10)
         if (this.age) this.color = lerpColor(this.color, color(R.random_choice(natural)), this.age)
         if (this.yellow) this.color = lerpColor(this.color, color('#ebe1a2'), this.yellow)
-        // if (this.darkness != 0) this.color = neighborColor(this.color, 0, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
-        if (this.darkness != 0) this.color = lerpColor(this.color, color(0), this.darkness)
+        if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
+        // if (this.darkness != 0) this.color = lerpColor(this.color, color(0), this.darkness)
         threadSize = this.threadSize
         await thread(this.ps, this.color, 3)
     }
     dir() {
         if (this.ps.length <= 1) return v(0, 0)
-        return p5.Vector.sub(this.ps[this.ps.length - 1], this.ps[0])
+        return vsub(this.ps[this.ps.length - 1], this.ps[0])
     }
 }
 
@@ -71,7 +71,7 @@ async function thread(ps, clr, fluff = 1, alpha = 120) {
     noStroke()
     let crv = newPs.map(p => p.copy())
     if (crv.length < 2 || crvLength(crv) < 1) return
-    if (newPs.length < 10) crv = makeCurve(newPs)
+    if (newPs.length < 10) crv = toCrv(newPs)
     fill(clr)
     crv.forEach(p => circle(p.x, p.y, threadSize * globalScale))
     noFill()

@@ -21,13 +21,15 @@ function setup() {
     noFill()
 
     ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
-    initialThreadSize = R.random(2.5, 3.5)
+    initialThreadSize = R.random(1.3, 2.5)
     threadSize = initialThreadSize
 
     const d = new Date()
     const fullYears = d.getFullYear() - 2023
     const years = fullYears + d.getMonth() / 12
     globalAge = constrain(years / 10, 0, 1)
+
+    fullPattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
 
     makeImage()
 }
@@ -47,8 +49,7 @@ async function makeImage() {
     composition = R.random_choice([withDivide, patches, largeRips])
     dyePattern1 = getColorFunc()
 
-    print(composition.name)
-    // composition = withDivide
+    // composition = patches
     await composition()
     print('done')
 }
