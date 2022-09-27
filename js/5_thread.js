@@ -49,7 +49,7 @@ class Loop {
     async draw() {
         if (this.ps.length <= 1) return
         if (this.withShadow)
-            for (const p of toCrv(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 10)
+            for (const p of toCrv(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 30)
         if (this.age) this.color = lerpColor(this.color, color(R.random_choice(natural)), this.age)
         if (this.yellow) this.color = lerpColor(this.color, color('#ebe1a2'), this.yellow)
         if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
@@ -66,6 +66,7 @@ class Loop {
 let t1 = 0
 
 async function thread(ps, clr, fluff = 1, alpha = 120) {
+    if (ps[0].x < 0 || ps[0].y < 0 || ps[0].x > baseWidth || ps[0].y > baseHeight) return
     newPs = ps.map(p => p.copy().mult(globalScale))
     noFill()
     noStroke()

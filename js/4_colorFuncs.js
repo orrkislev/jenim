@@ -50,7 +50,7 @@ let paintersLayers = []
 const initPainters = () => {
     for (let i = 0; i < 2; i++)
         paintersLayers.push({
-            s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), color: makeColor(R.random(0, 120), 360, R.random(120, 360))
+            s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), color: makeColor(R.random(0, 120), 360, R.random(200, 360))
         })
 }
 function painters_camo() {

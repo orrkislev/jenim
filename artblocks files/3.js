@@ -136,39 +136,59 @@ async function patches() {
     const ptchs = []
 
     for (let i = 0; i < sumPatches; i++) {
-        const patchCenter = isMending && R.random()<0.5 ? v_rel(.5,.5) : v_rel(R.random(.2,.8), R.random(.2,.8))
+        const patchCenter = isMending && R.random() < 0.5 ? v_rel(.5, .5) : v_rel(R.random(.2, .8), R.random(.2, .8))
         if (R.random_dec() < 0.5) ptchs.push(roundPatch(baseWidth * R.random(0.1, 0.25), patchCenter, denimColor))
-        else ptchs.push(rectPatch(patchCenter,denimColor))
-        if (i == 0) ptchs[i].fringe = true
+        else ptchs.push(rectPatch(patchCenter, denimColor))
     }
 
     if (isMending) {
         const center = ptchs[0].denim.lp.center()
         stitches = []
-        const mendingType = R.random_choice([0, 1])
+        const mendingType = R.random_choice([0, 1, 2, 3])
         if (mendingType == 0) {
+            let a = 0
+            let r = 50
+            const sumStitches = R.random(100, 200)
+            for (let i = 0; i < sumStitches; i++) {
+                const circum = 2 * PI * r
+                const stitchLength = R.random(20, 30)
+                a2 = a + stitchLength / circum * 360
+                r2 = r + R.random(1, 2)
+                stitches.push([vadd(center, v(r, 0).rotate(a)), vadd(center, v(r2, 0).rotate(a2))])
+                a = a2 + R.random(8, 15)
+                r = r2
+            }
+        } else {
             const bounds = ptchs[0].denim.lp.bounds()
+            const xx = mendingType == 1 ? 15 : 0
+            const threshold = R.random()
+            const threshold2 = R.random()
             for (let x = bounds.left - 100; x < bounds.right + 100; x += R.random(30, 40)) {
                 for (let y = bounds.top - R.random(100); y < bounds.bottom + R.random(100); y += R.random(30, 40)) {
                     const stitchLength = R.random(30, 40)
-                    stitches.push([v(x, y), v(x, y + stitchLength)])
-                    stitches.push([v(x - stitchLength / 2, y + stitchLength / 2), v(x + stitchLength / 2, y + stitchLength / 2)])
+
+                    let draw1 = true
+                    let draw2 = true
+                    if (R.random() < threshold) {
+                        if (R.random() < threshold2) draw1 = false
+                        else draw2 = false
+                    }
+
+                    if (draw1)
+                        stitches.push([
+                            v(x + xx, y),
+                            v(x - xx, y + stitchLength)])
+                    if (draw2)
+                        stitches.push([
+                            v(x - stitchLength / 2, y + stitchLength / 2 - xx),
+                            v(x + stitchLength / 2, y + stitchLength / 2 + xx)])
                     y = y + stitchLength
                 }
                 x += R.random(30, 40)
             }
-        } else if (mendingType == 1) {
-            let a = 0
-            let r = 35
-            for (let i=0;i<200;i++){
-                a2 = a + R.random(8, 15)
-                r2 = r + R.random(1,2)
-                stitches.push([vadd(center, v(r,0).rotate(a)), vadd(center, v(r2,0).rotate(a2))])
-                a = a2 + R.random(8, 15)
-                r = r2
-            }
         }
     }
+
 
     denim.calc().makeRips()
     applyColorFunc(denim, dyePattern1)
@@ -180,7 +200,7 @@ async function patches() {
 
     for (let i = 0; i < ptchs.length; i++) {
         await ptchs[i].denim.draw({ dontFringe: ptchs.fringe })
-        if (!isMending) await drawStitches(ptchs[i].stitches)
+        if (!isMending || (isMending && R.random() < 0.5)) await drawStitches(ptchs[i].stitches)
     }
 
     if (isMending) {
@@ -274,7 +294,7 @@ async function withDivide() {
     denim_top.dropShadowOn([denim_bg])
 
     if (withFringe) {
-        denim_top.warpExtensions = [R.random(10, 50), R.random(50, 200)]
+        denim_top.warpExtensions = [R.random(40, 100), R.random(100, 200)]
         denim_top.extendChance = R.random(.7, 1)
     }
 
@@ -338,3 +358,4 @@ async function makeImage() {
     await composition()
     print('done')
 }
+
