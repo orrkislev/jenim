@@ -103,7 +103,7 @@ function patchStitches(patch) {
 
 async function drawStitches(stitches) {
     for (const s of stitches) {
-        await new Loop(s, patchStitchColor, initialThreadSize * 1.4).wiggle().shadow().draw()
+        await new Loop(s, patchStitchColor, initialThreadSize * 1.7).wiggle().shadow().draw()
         await timeout(0);
     }
 }
