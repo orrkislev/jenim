@@ -96,7 +96,7 @@ function calculateFeatures(tokenData) {
 
     specialWeave = initDenimParams(R)
     colors = getColors(R)
-    composition = R.random_choice(['Layered', 'Patchie', 'Distressed'])
+    composition = R.random_choice(['Layered', 'Patchie', 'Distressed','Plain'])
     dyePattern1 = getColorFunc(R, specialWeave)
     dyePattern2 = "None"
     seams = "None"

@@ -177,7 +177,7 @@ class Denim {
         this.rotation = r
         return this
     }
-    calc(args = {}) {
+    calc() {
         this.ripThreshold += globalAge * 0.3
         this.age += globalAge
         this.ripMin -= globalAge * 30
@@ -185,18 +185,18 @@ class Denim {
 
         if (!this.warp) this.makeWarp()
         if (!this.weft) this.makeWeft()
-        if (!args.dontTrim) this.trim()
-        if (!args.dontUnravel) this.unravel()
-        if (!args.dontAge) this.doAge()
+        this.trim()
+        this.unravel()
+        this.doAge()
         return this
     }
     async draw(args = {}) {
         threadSize = initialThreadSize
-        if (!args.dontWarp) await this.drawWarp()
-        if (!args.dontWeft) await this.drawWeft()
+        await this.drawWarp()
+        await this.drawWeft()
         if (!args.dontFringe) await this.extendWarps()
         if (this.hasRips) await this.drawRips()
-        if (!args.dontStitch) await this.lp.drawStitches(this)
+        await this.lp.drawStitches(this)
     }
 
 

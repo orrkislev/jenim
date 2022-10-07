@@ -1,3 +1,12 @@
+async function simple() {
+    denim = new Denim(fullPattern, denimColor).rotate(R.random(360))
+    denim.calc().makeRips()
+    applyColorFunc(denim, dyePattern1)
+
+    background(BG)
+    await denim.draw()
+}
+
 async function patches() {
     const isMending = R.random() < .5
 
@@ -101,15 +110,36 @@ async function largeRips() {
 async function withDivide() {
     dyePattern2 = getColorFunc()
 
-    const flipped = R.random() < 0.5
-    const withFringe = R.random() < 0.5
-    const isHorizontal = R.random() < 0.5
+    flipped = R.random() < 0.5
+    withFringe = R.random() < 0.5
+    pos1 = R.random_choice(['left', 'right', 'top', 'bottom'])
+    pos2 = R.random() < 0.1 ? R.random_choice(['left', 'right', 'top', 'bottom']) : false
+    if (!pos2 && R.random() < 0.5){
+        if (pos1 == 'left') pos2 = 'right'
+        else if (pos1 == 'right') pos2 = 'left'
+        else if (pos1 == 'top') pos2 = 'bottom'
+        else if (pos1 == 'bottom') pos2 = 'top'
+    }
 
     denim_bg = new Denim(fullPattern, denimColor).rotate(R.random(360)).calc()
+    denim_top1 = divideTopDenim(pos1)
+    if (pos2) denim_top2 = divideTopDenim(pos2)
+    
+    applyColorFunc(denim_bg, dyePattern1)
+
+    background(BG)
+    await denim_bg.draw({ dontFringe: true })
+    await denim_top1.draw({ dontFringe: false })
+    if (pos2) await denim_top2.draw({ dontFringe: false })
+}
 
 
+
+
+
+function divideTopDenim(pos) {
     let start, end
-    if (isHorizontal) {
+    if (['left', 'right'].includes(pos)) {
         start = v(-baseWidth * .2, baseHeight * R.random(.18, .82))
         end = v(baseWidth * 1.2, baseHeight * R.random(.18, .82))
     } else {
@@ -127,50 +157,43 @@ async function withDivide() {
     }
     mps.push(end)
     mps.unshift(start)
+    
 
     let c1, c2
-    if (isHorizontal) {
-        if (R.random() < 0.5) {
-            c1 = v(-baseWidth * .2, -baseHeight * .2)
-            c2 = v(baseWidth * 1.2, -baseHeight * .2)
-        } else {
-            mps.reverse()
-            c1 = v(baseWidth * 1.2, baseHeight * 1.2)
-            c2 = v(-baseWidth * .2, baseHeight * 1.2)
-        }
+    if (pos == 'left') {
+        c1 = v(-baseWidth * .2, -baseHeight * .2)
+        c2 = v(baseWidth * 1.2, -baseHeight * .2)
+    } else if (pos == 'right') {
+        mps.reverse()
+        c1 = v(baseWidth * 1.2, baseHeight * 1.2)
+        c2 = v(-baseWidth * .2, baseHeight * 1.2)
+    } else if (pos == 'top') {
+        mps.reverse()
+        c1 = v(-baseWidth * .2, baseHeight * 1.2)
+        c2 = v(-baseWidth * .2, -baseHeight * .2)
     } else {
-        if (R.random() < 0.5) {
-            mps.reverse()
-            c1 = v(-baseWidth * .2, baseHeight * 1.2)
-            c2 = v(-baseWidth * .2, -baseHeight * .2)
-        } else {
-            c1 = v(baseWidth * 1.2, -baseHeight * .2)
-            c2 = v(baseWidth * 1.2, baseHeight * 1.2)
-        }
+        c1 = v(baseWidth * 1.2, -baseHeight * .2)
+        c2 = v(baseWidth * 1.2, baseHeight * 1.2)
     }
 
     const points = [c1, ...mps, c2]
 
     pattern_top = new LayoutPattern2(points).fillet(50)
 
-    denim_top = new Denim(pattern_top, denimColor).rotate(R.random(-360))
-    if (flipped) denim_top.visibleWhite = 1
-    denim_top.age = 0.2
-    denim_top.ripThreshold = R.random(.1, .45)
-    denim_top.calc().makeRips()
+    newDenim = new Denim(pattern_top, denimColor).rotate(R.random(-360))
+    if (flipped) newDenim.visibleWhite = 1
+    newDenim.age = 0.2
+    newDenim.ripThreshold = R.random(.1, .45)
+    newDenim.calc().makeRips()
 
-    applyColorFunc(denim_bg, dyePattern1)
-    applyColorFunc(denim_top, dyePattern2)
+    applyColorFunc(newDenim, dyePattern2)
 
-    denim_top.foldedStitchings()
-    denim_top.dropShadowOn([denim_bg])
+    newDenim.dropShadowOn([denim_bg])
 
     if (withFringe) {
-        denim_top.warpExtensions = [R.random(40, 100), R.random(100, 200)]
-        denim_top.extendChance = R.random(.7, 1)
-    }
+        newDenim.warpExtensions = [R.random(40, 100), R.random(100, 200)]
+        newDenim.extendChance = R.random(.7, 1)
+    } else newDenim.foldedStitchings()
 
-    background(BG)
-    await denim_bg.draw({ dontFringe: true })
-    await denim_top.draw({ dontFringe: false })
+    return newDenim
 }

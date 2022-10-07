@@ -19,6 +19,8 @@ function rectPatch(position, color) {
 function makePatch(ps, color) {
     const pattern = new LayoutPattern2(ps)
     const denim = new Denim(pattern, color, 0).rotate(R.random(360)).calc()
+    denim.warpExtensions = [5, 20]
+    denim.extendChance = R.random(.2,.4)
     applyPatchShadow(denim)
     const stitches = patchStitches(denim)
     const fringe = R.random_dec() < 0.5

@@ -2,7 +2,7 @@
     {
         "type": "enum",
         "name": "Composition",
-        "options": [ "Patchie", "Distressed", "Layered", "Fringes", "Visible Mending"]
+        "options": [ "Patchie", "Distressed", "Layered", "Fringes", "Visible Mending", "Plain"]
     },
     {
         "type": "enum",
