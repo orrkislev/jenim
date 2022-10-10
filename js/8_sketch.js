@@ -21,7 +21,7 @@ function setup() {
     noFill()
 
     ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
-    initialThreadSize = R.random(1.3, 2.5)
+    initialThreadSize = .9//R.random(.9, 2)
     threadSize = initialThreadSize
 
     const d = new Date()
@@ -49,7 +49,7 @@ async function makeImage() {
     composition = R.random_choice([withDivide, patches, largeRips, simple])
     dyePattern1 = getColorFunc()
 
-    composition = patches
+    // composition = patches
     await composition()
     print('done')
 }

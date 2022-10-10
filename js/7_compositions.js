@@ -9,7 +9,7 @@ async function simple() {
 }
 
 async function patches() {
-    const isMending = true//R.random() < .5
+    const isMending = R.random() < .5
 
     denim = new Denim(fullPattern, denimColor).rotate(R.random(360))
     const denimFringe = !isMending && R.random_dec() < 0.5
