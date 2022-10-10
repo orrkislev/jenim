@@ -8,8 +8,8 @@ function roundPatch(size, position = v_rel(0.5, 0.5), color) {
 }
 
 function rectPatch(position, color) {
-    const w = R.random(100, 600)
-    const h = R.random(100, 600)
+    const w = R.random(100, 700)
+    const h = R.random(100, 700)
     const rectPattern = new SquarePatternShape(position.x - w / 2, position.y - h / 2, w, h)
     rectPattern.rotate(R.random(-15, 15))
     ps = rectPattern.ps
@@ -105,7 +105,7 @@ function patchStitches(patch) {
 
 async function drawStitches(stitches) {
     for (const s of stitches) {
-        await new Loop(s, patchStitchColor, initialThreadSize * 1.7).wiggle().shadow().draw()
+        await new Loop(s.slice(0,2), s[2] ?? patchStitchColor, initialThreadSize * 1.7).wiggle().shadow().draw()
         await timeout(0);
     }
 }

@@ -49,7 +49,7 @@ async function makeImage() {
     composition = R.random_choice([withDivide, patches, largeRips, simple])
     dyePattern1 = getColorFunc()
 
-    // composition = patches
+    composition = patches
     await composition()
     print('done')
 }
