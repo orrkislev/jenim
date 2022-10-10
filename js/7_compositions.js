@@ -135,7 +135,7 @@ async function withDivide() {
 
     denim_bg = new Denim(fullPattern, denimColor).rotate(R.random(360)).calc()
     denim_top1 = divideTopDenim(pos1)
-    denim.ripExtendMasks.push(denim_top1)
+    denim_bg.ripExtendMasks.push(denim_top1)
     if (pos2) {
         denim_top2 = divideTopDenim(pos2)
         denim_top1.ripExtendMasks.push(denim_top2)
