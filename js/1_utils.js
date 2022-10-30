@@ -139,3 +139,7 @@ function placeOnCurve(crv,d){
   }
   return false
 }
+
+function inCanvas(p) {
+  return p.x > 0 && p.x < baseWidth && p.y > 0 && p.y < baseHeight
+}

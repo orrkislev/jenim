@@ -352,8 +352,6 @@ function applyColorFunc(denim, colorFunc) {
 
 
 
-
-
 const initBaseColor = () => {
     const r = R.random_dec()
     if (r < 0.7) {

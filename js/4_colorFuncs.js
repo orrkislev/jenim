@@ -108,7 +108,7 @@ function getColorFunc() {
 
     let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock, painters_grad]
     if (composition.name == "withDivide") options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers]
-    if (specialWeave) options = [bleach_gradient, bleach_large, strips, painters_grad]
+    // if (specialWeave) options = [bleach_gradient, bleach_large, strips, painters_grad]
     res = R.random_choice(options)
     return res
 }

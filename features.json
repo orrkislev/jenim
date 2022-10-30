@@ -21,11 +21,6 @@
     },
     {
         "type": "enum",
-        "name": "Weave",
-        "options": [ "Special" , "Twill"]
-    },
-    {
-        "type": "enum",
         "name": "Seams",
         "options": [ "Black", "White", "Red" , "Ochre"]
     }

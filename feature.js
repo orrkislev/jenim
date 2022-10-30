@@ -50,19 +50,18 @@ function calculateFeatures(tokenData) {
 
     // ---------------------- COLOR FUNCS ----------------------
 
-    const getColorFunc = (R, specialWeave) => {
+    const getColorFunc = (R) => {
         let r = R.random_dec()
         if (r < 0.5) return 'Plain'
 
         let options = ["Bleaches", "Bleaches", "Bleaches", "Jailhouse Strips", "Checkers", 'Camou', 'Painters Pants', 'Tie Dye']
         if (composition == "Layered") options = ["Bleaches", 'Bleaches', 'Bleaches', 'Jailhouse Strips', 'Checkers']
-        if (specialWeave) options = ['Bleaches', 'Bleaches', 'Jailhouse Strips', 'Tie Dye']
         res = R.random_choice(options)
         return res
     }
 
     const getColors = (R) => {
-        const r = R.random_dec()
+        let r = R.random_dec()
         if (r < 0.7) {
             x = [R.random(200, 250), 360, R.random(180, 360)]
             patchStitch = R.random_choice(['Red', 'Black', 'White'])
@@ -77,48 +76,29 @@ function calculateFeatures(tokenData) {
 
     // ---------------------- WEAVE FUNCS ----------------------
 
-    function initDenimParams(R) {
-        let specialWeave = false
-        if (R.random_dec() < 0.07) {
-            specialWeave = true
-            x = R.random_int(1, 3)
-            x = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
-            x = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
-        }
-        return specialWeave
-    }
-
     R = new ABRandom(tokenData)
 
     x = R.random_int(20000)
-    x = [R.random(5, 10), R.random(5, 10)]
-    x = R.random(2.5, 3.5)
-
-    specialWeave = initDenimParams(R)
+    composition = R.random_choice(['Layered', 'Patchie', 'Distressed', 'Plain', 'Visible Mending', 'Ripped', 'Fringes'])
     colors = getColors(R)
-    composition = R.random_choice(['Layered', 'Patchie', 'Distressed','Plain'])
-    dyePattern1 = getColorFunc(R, specialWeave)
-    dyePattern2 = "None"
+    dyePattern1 = getColorFunc(R)
+    dyePattern2 = getColorFunc(R)
+
+    feature_dyePattern2 = "None"
     seams = "None"
 
     if (composition == 'Layered') {
-        dyePattern2 = getColorFunc(R, specialWeave)
+        feature_dyePattern2 = dyePattern2
         seams = colors.denimStitch
-        x = R.random() < 0.5
-        const withFringe = R.random() < 0.5
-        if (withFringe) composition = "Fringes"
-    } else if (composition == 'Patchie') {
-        const isMending = R.random() < .5
-        if (isMending) composition = "Visible Mending"
+    } else if (composition == 'Patchie' || composition == 'Visible Mending') {
         seams = colors.patchStitch
-    } else if (composition == 'Distressed') {
     }
+
     return {
         "Composition": composition,
         "Tinting": colors.color,
         "Dye Pattern": dyePattern1,
-        "Second Dye Pattern": dyePattern2,
-        "Weave": specialWeave ? "Odd" : "Twill",
+        "Second Dye Pattern": feature_dyePattern2,
         "Seams": seams,
     }
 }

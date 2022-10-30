@@ -8,8 +8,8 @@ function roundPatch(size, position = v_rel(0.5, 0.5), color) {
 }
 
 function rectPatch(position, color) {
-    const w = R.random(100, 600)
-    const h = R.random(100, 600)
+    const w = R.random(100, 700)
+    const h = R.random(100, 700)
     const rectPattern = new SquarePatternShape(position.x - w / 2, position.y - h / 2, w, h)
     rectPattern.rotate(R.random(-15, 15))
     ps = rectPattern.ps
@@ -105,7 +105,7 @@ function patchStitches(patch) {
 
 async function drawStitches(stitches) {
     for (const s of stitches) {
-        await new Loop(s, patchStitchColor, initialThreadSize * 1.7).wiggle().shadow().draw()
+        await new Loop(s.slice(0,2), s[2] ? patchStitchColor : s[2], initialThreadSize * 1.7).wiggle().shadow().draw()
         await timeout(0);
     }
 }
@@ -135,6 +135,7 @@ async function simple() {
 
     background(BG)
     await denim.draw()
+    await denim.finishDraw()
 }
 
 async function patches() {
@@ -155,68 +156,63 @@ async function patches() {
     if (isMending) {
         const center = ptchs[0].denim.lp.center()
         stitches = []
-        const mendingType = R.random_choice([0, 1, 2, 3])
-        if (mendingType == 0) {
-            let a = 0
-            let r = 50
-            const sumStitches = R.random(100, 200)
-            for (let i = 0; i < sumStitches; i++) {
-                const circum = 2 * PI * r
-                const stitchLength = R.random(20, 30)
-                a2 = a + stitchLength / circum * 360
-                r2 = r + R.random(1, 2)
-                stitches.push([vadd(center, v(r, 0).rotate(a)), vadd(center, v(r2, 0).rotate(a2))])
-                a = a2 + R.random(8, 15)
-                r = r2
-            }
-        } else {
-            const bounds = ptchs[0].denim.lp.bounds()
-            const xx = mendingType == 1 ? 15 : 0
-            const threshold = R.random()
-            const threshold2 = R.random()
-            for (let x = bounds.left - 100; x < bounds.right + 100; x += R.random(30, 40)) {
-                for (let y = bounds.top - R.random(100); y < bounds.bottom + R.random(100); y += R.random(30, 40)) {
-                    const stitchLength = R.random(30, 40)
+        const mendingType = R.random_choice([1, 2, 3])
+        let clr = patchStitchColor
 
-                    let draw1 = true
-                    let draw2 = true
-                    if (R.random() < threshold) {
-                        if (R.random() < threshold2) draw1 = false
-                        else draw2 = false
-                    }
+        const bounds = ptchs[0].denim.lp.bounds()
+        const xx = mendingType == 1 ? 15 : 0
+        const threshold = R.random()
+        const threshold2 = R.random()
+        const colorType = R.random_choice([0, 1, 2])
+        for (let x = bounds.left - 100; x < bounds.right + 100; x += R.random(30, 40)) {
+            if (colorType == 1) clr = R.random_choice([color(255, 0, 0), color(0), color(255)])
+            for (let y = bounds.top - R.random(100); y < bounds.bottom + R.random(100); y += R.random(30, 40)) {
+                if (colorType == 2) R.random_choice([color(255, 0, 0), color(0), color(255)])
+                const stitchLength = R.random(30, 40)
 
-                    if (draw1)
-                        stitches.push([
-                            v(x + xx, y),
-                            v(x - xx, y + stitchLength)])
-                    if (draw2)
-                        stitches.push([
-                            v(x - stitchLength / 2, y + stitchLength / 2 - xx),
-                            v(x + stitchLength / 2, y + stitchLength / 2 + xx)])
-                    y = y + stitchLength
+                let draw1 = true
+                let draw2 = true
+                if (R.random() < threshold) {
+                    if (R.random() < threshold2) draw1 = false
+                    else draw2 = false
                 }
-                x += R.random(30, 40)
+
+                if (draw1)
+                    stitches.push([
+                        v(x + xx, y),
+                        v(x - xx, y + stitchLength), clr])
+                if (draw2)
+                    stitches.push([
+                        v(x - stitchLength / 2, y + stitchLength / 2 - xx),
+                        v(x + stitchLength / 2, y + stitchLength / 2 + xx), clr])
+                y = y + stitchLength
             }
+            x += R.random(30, 40)
         }
+        // stitches = stitches.filter(st => !(ptchs[0].denim.hasWeftOn(st[0]) && ptchs[0].denim.hasWeftOn(st[1])))
     }
 
 
     denim.calc().makeRips()
     applyColorFunc(denim, dyePattern1)
 
-    for (let i = 0; i < ptchs.length; i++) applyPatch3dEffect(ptchs[i].denim, denim)
+    for (let i = 0; i < ptchs.length; i++) {
+        denim.ripExtendMasks.push(ptchs[i].denim)
+        applyPatch3dEffect(ptchs[i].denim, denim)
+    }
 
     background(BG)
     await denim.draw({ dontFringe: denimFringe })
 
+    threadSize = initialThreadSize * 1.5
     for (let i = 0; i < ptchs.length; i++) {
         await ptchs[i].denim.draw({ dontFringe: ptchs.fringe })
         if (!isMending || (isMending && R.random() < 0.5)) await drawStitches(ptchs[i].stitches)
+        await ptchs[i].denim.finishDraw()
     }
 
-    if (isMending) {
-        await drawStitches(stitches)
-    }
+    if (isMending) await drawStitches(stitches)
+    await denim.finishDraw()
 }
 
 async function largeRips() {
@@ -235,6 +231,7 @@ async function largeRips() {
     background(BG)
     await denim.draw({ dontFringe: true })
     await denim2.draw()
+    await denim2.finishDraw()
 }
 
 async function withDivide() {
@@ -244,7 +241,7 @@ async function withDivide() {
     withFringe = R.random() < 0.5
     pos1 = R.random_choice(['left', 'right', 'top', 'bottom'])
     pos2 = R.random() < 0.1 ? R.random_choice(['left', 'right', 'top', 'bottom']) : false
-    if (!pos2 && R.random() < 0.5){
+    if (!pos2 && R.random() < 0.5) {
         if (pos1 == 'left') pos2 = 'right'
         else if (pos1 == 'right') pos2 = 'left'
         else if (pos1 == 'top') pos2 = 'bottom'
@@ -253,14 +250,24 @@ async function withDivide() {
 
     denim_bg = new Denim(fullPattern, denimColor).rotate(R.random(360)).calc()
     denim_top1 = divideTopDenim(pos1)
-    if (pos2) denim_top2 = divideTopDenim(pos2)
-    
+    denim_bg.ripExtendMasks.push(denim_top1)
+    if (pos2) {
+        denim_top2 = divideTopDenim(pos2)
+        denim_top1.ripExtendMasks.push(denim_top2)
+        denim.ripExtendMasks.push(denim_top2)
+    }
+
     applyColorFunc(denim_bg, dyePattern1)
 
     background(BG)
     await denim_bg.draw({ dontFringe: true })
+    await denim_bg.finishDraw()
     await denim_top1.draw({ dontFringe: false })
-    if (pos2) await denim_top2.draw({ dontFringe: false })
+    await denim_top1.finishDraw()
+    if (pos2) {
+        await denim_top2.draw({ dontFringe: false })
+        await denim_top2.finishDraw()
+    }
 }
 
 
@@ -287,7 +294,7 @@ function divideTopDenim(pos) {
     }
     mps.push(end)
     mps.unshift(start)
-    
+
 
     let c1, c2
     if (pos == 'left') {
@@ -351,7 +358,7 @@ function setup() {
     noFill()
 
     ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
-    initialThreadSize = R.random(1.3, 2.5)
+    initialThreadSize = 1.2//R.random(.9, 2)
     threadSize = initialThreadSize
 
     const d = new Date()
@@ -379,6 +386,7 @@ async function makeImage() {
     composition = R.random_choice([withDivide, patches, largeRips, simple])
     dyePattern1 = getColorFunc()
 
+    // composition = patches
     await composition()
     print('done')
 }

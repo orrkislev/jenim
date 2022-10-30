@@ -172,6 +172,7 @@ class Denim {
         this.ripThreshold = R.random(.18, .32)
         this.ripMin = R.random(30, 70) * initialThreadSize
         this.ripMax = R.random(this.ripMin, 160) * initialThreadSize
+        this.ripExtendMasks = []
     }
     rotate(r) {
         this.rotation = r
@@ -195,8 +196,10 @@ class Denim {
         await this.drawWarp()
         await this.drawWeft()
         if (!args.dontFringe) await this.extendWarps()
-        if (this.hasRips) await this.drawRips()
         await this.lp.drawStitches(this)
+    }
+    async finishDraw(){
+        if (this.hasRips) await this.drawRips()
     }
 
 
@@ -414,6 +417,11 @@ class Denim {
         let counter = 0
         this.weftRips = this.weftRips.filter(a => R.random_dec() < 0.7)
         for (const end of this.weftRips) {
+            let skip = false
+            for (const ripMask of this.ripExtendMasks) {
+                if (ripMask.hasWeftOn(end.pos)) skip = true
+            }
+            if (skip) continue
             let c = color(this.color)
             this.weft.forEach(col => col.forEach(loop => loop.ps.forEach(p => {
                 if (p && vdist(p, end.pos) < 10)

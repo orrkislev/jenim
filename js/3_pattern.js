@@ -134,9 +134,14 @@ class LayoutPattern2 extends PatternShape {
         l2 *= initialThreadSize
         for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2 * R.random(0.9, 1.2) : l2) {
             const p1 = placeOnCurve(crv, i)
+            if (!p1) continue
             i += handMade ? l1 * R.random(0.9, 1.2) : l1
             const p2 = placeOnCurve(crv, i)
-            if (p1 && p2) stitches.push([p1, p2])
+            if (!p2) break
+            const dir = vsub(p2, p1).rotate(10)
+            const p3 = vadd(p1, dir)
+            if (inCanvas(p1) || inCanvas(p3)) stitches.push([p1, p3])
+            // stitches.push([p1, p3])
         }
         return stitches
     }
@@ -148,7 +153,7 @@ class LayoutPattern2 extends PatternShape {
         shading.beginShape()
         this.crv().forEach(p => shading.vertex(p.x, p.y))
         shading.endShape()
-        this.crv().forEach(p => shading.circle(p.x + 3, p.y + 3, threadSize * R.random(12)))
+        this.crv().forEach(p => shading.circle(p.x, p.y, threadSize * R.random(15)))
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {
@@ -156,41 +161,99 @@ class LayoutPattern2 extends PatternShape {
                     const c = shading.get(p.x, p.y)
                     if (alpha(c) > 0) {
                         // loop.age = 1 - alpha(c) / 255
-                        loop.darkness = .05 - (alpha(c) / 255) / 20
+                        loop.darkness = .4 - (brightness(c) / 360) * (alpha(c) / 255) * .4
                     }
                 }
             })
         })
     }
 
-    setStitches(stitchType, data) {
-        this.stitchType = stitchType
+    setStitches(data) {
         this.stitchData = data
     }
 
     async drawStitches(denim = null) {
-        if (!this.stitchType) return
-        let stitches = []
+        if (!this.stitchData) return
+
+        const stitchType = this.stitchData.length == 2 ?
+            R.random_choice(['normal', 'doubleTrim', 'force']) :
+            R.random_choice(['normal', 'trim', 'zigzag', 'force'])
+
+        let rows = []
         for (const d of this.stitchData) {
-            stitches = [...stitches, ...this.stitches(d, 5, 5)]
+            rows.push(this.stitches(d, 12, 4))
         }
 
-        if (this.stitchType == stitchTypes.HANDMADE) {
-            for (const d of this.stitchData) {
-                stitches = this.stitches(d, 6, 8, true)
-                for (let st of stitches) {
-                    st[0].add(R.random(-threadSize, threadSize))
-                    st[1].add(R.random(-threadSize, threadSize))
+        if (['trim', 'doubleTrim'].includes(stitchType)) rows[rows.length - 1].splice(round(rows[rows.length - 1].length * R.random(.3, .7)))
+
+        // DRAW STITCHES
+        for (let row of rows) {
+            for (let st of row) {
+                const weftLoop = denim.hasWeftOn(st[0])
+                if (weftLoop) {
+                    const newLoop = new Loop(st, stitchColor, initialThreadSize * 1.3).wiggle().shadow()
+                    newLoop.age = weftLoop.age
+                    await newLoop.draw()
+                    await timeout()
                 }
             }
         }
 
-        for (let st of stitches) {
-            const weftLoop = denim.hasWeftOn(st[0])
-            if (weftLoop) {
-                const newLoop = new Loop(st, stitchColor, initialThreadSize * 2).wiggle().shadow()
-                newLoop.age = weftLoop.age
+        // DRAW EXTRAS
+
+        if (stitchType == 'doubleTrim') {
+            const lastStitch = rows[1][rows[1].length - 1]
+            const stitchDir = vsub(lastStitch[1], lastStitch[0]).setMag(5)
+            const fillDir = stitchDir.copy().rotate(80)
+            const distBetweenStitches = (this.stitchData[1] - this.stitchData[0])
+
+            for (let i = -1 * globalScale; i < distBetweenStitches + 2 * globalScale; i += R.random(5) * globalScale) {
+                const p1 = vadd(lastStitch[0].add(stitchDir.copy().setMag(R.random(-2, 2) * globalScale)), fillDir.copy().setMag(i))
+                const p2 = vadd(lastStitch[1].add(stitchDir.copy().setMag(R.random(-2, 2) * globalScale)), fillDir.copy().setMag(i))
+                const weftLoop = denim.hasWeftOn(p1)
+                if (weftLoop) {
+                    const newLoop = new Loop([p1, p2], color(255, 0, 0), initialThreadSize * 1.3).wiggle().shadow()
+                    newLoop.age = weftLoop.age
+                    await newLoop.draw()
+                    await timeout()
+                }
+            }
+        }
+
+        if (['trim', 'force'].includes(stitchType)) {
+            const lastRow = rows[rows.length - 1]
+            const lastStitch = stitchType == 'trim' ? lastRow[lastRow.length - 1] : R.random_choice(lastRow)
+            const stitchDir = vsub(lastStitch[1], lastStitch[0])
+            const perp = stitchDir.copy().rotate(90)
+            const l = R.random(50, 100)
+            for (let i = 1; i < l; i += R.random(5)) {
+                const p0 = vadd(lastStitch[1], stitchDir.copy().setMag(i * globalScale))
+                const dir = perp.copy().rotate(R.random(-10, 10)).setMag(R.random(5, 10) * globalScale)
+                const p1 = vadd(p0, dir)
+                const p2 = vsub(p0, dir)
+                const weftLoop = denim.hasWeftOn(p1)
+                if (weftLoop) {
+                    const newLoop = new Loop([p1, p2], color(255, 0, 0), initialThreadSize * 1.3).wiggle().shadow()
+                    newLoop.age = weftLoop.age
+                    await newLoop.draw()
+                    await timeout()
+                }
+            }
+        }
+        if (stitchType == 'zigzag') {
+            const startStitchIndex = round(rows[0].length * R.random(.1, .7))
+            const endStitchIndex = floor(R.random(startStitchIndex, rows[0].length * (.9)))
+            for (let i = startStitchIndex; i < endStitchIndex; i++) {
+                const st = rows[0][i]
+                const dir = vsub(st[1], st[0]).rotate(45)
+                const p1 = vadd(st[0], dir)
+
+                let newLoop = new Loop([st[0], p1], color(255, 0, 0), initialThreadSize * 1.3).wiggle().shadow()
                 await newLoop.draw()
+
+                newLoop = new Loop([p1, st[1]], color(255, 0, 0), initialThreadSize * 1.3).wiggle().shadow()
+                await newLoop.draw()
+                await timeout()
             }
         }
     }

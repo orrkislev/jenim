@@ -11,6 +11,7 @@ function rectPatch(position, color) {
     const w = R.random(100, 700)
     const h = R.random(100, 700)
     const rectPattern = new SquarePatternShape(position.x - w / 2, position.y - h / 2, w, h)
+    rectPattern.fillet(R.random(50))
     rectPattern.rotate(R.random(-15, 15))
     ps = rectPattern.ps
     return makePatch(ps, color)
@@ -20,7 +21,7 @@ function makePatch(ps, color) {
     const pattern = new LayoutPattern2(ps)
     const denim = new Denim(pattern, color, 0).rotate(R.random(360)).calc()
     denim.warpExtensions = [5, 20]
-    denim.extendChance = R.random(.2,.4)
+    denim.extendChance = R.random(.2, .4)
     applyPatchShadow(denim)
     const stitches = patchStitches(denim)
     const fringe = R.random_dec() < 0.5
@@ -78,12 +79,12 @@ function applyPatch3dEffect(patch, denim) {
     })
 }
 
-function patchStitches(patch) {
+function patchStitches(patch, stitchType) {
     threadSize = initialThreadSize
     let stitches = []
-    const r = R.random_choice([1, 2, 3])
+    const r = stitchType || R.random_choice([1, 2, 3])
     if (r == 1) {
-        stitches = crossStitches(patch.lp, R.random(2, 8), [35, 3, 3, 3])
+        stitches = crossStitches(patch.lp)
     } else if (r == 2) {
         stitches = patch.lp.stitches(6, 5, 5, true)
         if (R.random_dec() < 0.5)
@@ -105,25 +106,25 @@ function patchStitches(patch) {
 
 async function drawStitches(stitches) {
     for (const s of stitches) {
-        await new Loop(s.slice(0,2), s[2] ?? patchStitchColor, initialThreadSize * 1.7).wiggle().shadow().draw()
+        await new Loop(s.slice(0, 2), s[2] ?? patchStitchColor, initialThreadSize * 1.3).wiggle().shadow().draw()
         await timeout(0);
     }
 }
 
-function crossStitches(pattern, h, stitchPattern) {
-    let crv = [...pattern.ps]
-    crv.push(pattern.ps[0])
-    crv = toCrv(crv)
-    const newPs = []
-    for (let i = 0; i < crv.length; i += stitchPattern.rotate()) newPs.push(crv[i])
-    pattern.ps = newPs
-    const offset1 = pattern.getOffset(h)
-    const offset2 = pattern.getOffset(-h)
-    const stitches = []
-    for (let i = 0; i < offset1.length; i++) {
-        offset1[i].add(R.random(-2, 2), R.random(-2, 2))
-        offset2[i].add(R.random(-2, 2), R.random(-2, 2))
-        stitches.push([offset1[i], offset2[i]])
-    }
+function crossStitches(pattern) {
+    let stitches = pattern.stitches(1, R.random(5, 15), R.random(5, 10), true).map(st => {
+        const numStitches = R.random(3, 5)
+        const l = vdist(st[0], st[1])
+        const dir = vsub(st[1], st[0])
+        const perp = dir.copy().rotate(80)
+        const newStitches = []
+        for (let i = 1; i < l; i += l / numStitches) {
+            const p0 = vsub(st[0], perp.setMag(10))
+            const p1 = vadd(p0, dir.setMag(i + .5))
+            const p2 = vadd(p1, perp.setMag(30))
+            newStitches.push([p1, p2])
+        }
+        return newStitches
+    }).flat()
     return stitches
 }

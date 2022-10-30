@@ -15,13 +15,26 @@ function setup() {
     else canvas = createCanvas(windowWidth, windowWidth * (7 / 5))
     globalScale = width / baseWidth
 
+
+    composition = R.random_choice([withDivide, patches, largeRips, simple, mending, singleHole, fringeComp])
+    print(composition.name)
+    initBaseColor()
+    dyePattern1 = getColorFunc()
+    print(dyePattern1)
+    dyePattern2 = getColorFunc()
+    print(dyePattern2)
+
+    makeImage()
+}
+
+async function makeImage() {
     angleMode(DEGREES)
     noLoop()
     noStroke()
     noFill()
 
     ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
-    initialThreadSize = .9//R.random(.9, 2)
+    initialThreadSize = 2//R.random(.9, 2)
     threadSize = initialThreadSize
 
     const d = new Date()
@@ -31,10 +44,10 @@ function setup() {
 
     fullPattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
 
-    makeImage()
-}
 
-async function makeImage() {
+
+
+
     background(BG)
     fill(255)
     textSize(10)
@@ -43,13 +56,8 @@ async function makeImage() {
     noFill()
     await timeout(30)
 
-    initDenimParams()
-    initBaseColor()
+    // initDenimParams()
 
-    composition = R.random_choice([withDivide, patches, largeRips, simple])
-    dyePattern1 = getColorFunc()
-
-    // composition = patches
     await composition()
     print('done')
 }

@@ -1,20 +1,27 @@
+let windTarget
+
 async function franzim(pos, dir, l) {
-    threadSize = initialThreadSize * 0.8
+    if (!windTarget) windTarget = R.random(360)
+    threadSize = initialThreadSize * .9
     dir.setMag(1)
     let ps = [pos]
     for (let i = 0; i < l; i++) {
         const noiseVal = noise(15 * ps[ps.length - 1].x / baseWidth, 15 * ps[ps.length - 1].y / baseHeight)
         const angle2 = (noiseVal - 0.5) * 40
-        dir.rotate(angle2 / 10 + R.random(-5, 5))
+        const wind = Math.sign(windTarget - dir.heading())
+        dir.rotate(angle2 / 10 + R.random(-2, 2) + wind * .5)
         ps.push(ps[ps.length - 1].copy().add(dir))
     }
     ps = toCrv(ps)
+    if (ps.length < 2) return
 
     for (let i = 0; i < ps.length; i++) {
-        await burn(ps[i].copy().add(6 * i / ps.length, 6 * i / ps.length).mult(globalScale), this.threadSize * globalScale, 7)
+        await burn(ps[i].copy().add(6 * i / ps.length, 6 * i / ps.length).mult(globalScale), threadSize * globalScale * map(i,0,ps.length,1,4), 5)
     }
 
-    await thread(ps, color(R.random_choice(warpColors)), 3, 50)
+    const clr = color(R.random_choice(warpColors))
+    clr.setAlpha(150)
+    await thread(ps, clr, 5, 50)
 }
 
 class Loop {
@@ -49,10 +56,13 @@ class Loop {
     async draw() {
         if (this.ps.length <= 1) return
         if (this.withShadow)
-            for (const p of toCrv(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 30)
+            for (let i=0;i<2;i++)
+                for (const p of toCrv(this.ps)) 
+                    await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 30)
         if (this.age) this.color = lerpColor(this.color, color(R.random_choice(natural)), this.age)
         if (this.yellow) this.color = lerpColor(this.color, color('#ebe1a2'), this.yellow)
-        if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
+        // if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
+        if (this.darkness != 0) this.color = neighborColor(this.color, 0, 0, -.5 * this.darkness * 360)
         // if (this.darkness != 0) this.color = lerpColor(this.color, color(0), this.darkness)
         threadSize = this.threadSize
         await thread(this.ps, this.color, 3)
