@@ -90,6 +90,15 @@ async function burn(p, size, force = 7) {
     fill(30, 30, 90, force)
     noStroke()
     circle(p.x, p.y, size * R.random(0.4, 1))
+    blendMode(BLEND)
+}
+
+async function dodge(p, size, force = 7) {
+    blendMode(DODGE)
+    fill(150, 150, 100, 3)
+    noStroke()
+    for (let i=0;i<force;i++)
+      circle(p.x + R.random(-size/2, size/2), p.y + R.random(-size/2, size/2), size * R.random(0.4, 1))
     // await softBrush(p, size)
     blendMode(BLEND)
 }

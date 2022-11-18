@@ -132,11 +132,13 @@ class LayoutPattern2 extends PatternShape {
         const stitches = []
         l1 *= initialThreadSize
         l2 *= initialThreadSize
-        for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2 * R.random(0.9, 1.2) : l2) {
+        for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2 * R.random(0.9, 1.6) : l2) {
             const p1 = placeOnCurve(crv, i)
-            i += handMade ? l1 * R.random(0.9, 1.2) : l1
+            if (!p1) continue
+            i += handMade ? l1 * R.random(0.9, 1.6) : l1
             const p2 = placeOnCurve(crv, i)
-            if (p1 && p2) stitches.push([p1, p2])
+            if (!p2) break
+            if (inCanvas(p1) || inCanvas(p2)) stitches.push([p1, p2])
         }
         return stitches
     }
@@ -148,7 +150,7 @@ class LayoutPattern2 extends PatternShape {
         shading.beginShape()
         this.crv().forEach(p => shading.vertex(p.x, p.y))
         shading.endShape()
-        this.crv().forEach(p => shading.circle(p.x + 3, p.y + 3, threadSize * R.random(12)))
+        this.crv().forEach(p => shading.circle(p.x, p.y, threadSize * R.random(15)))
         denim.weft.forEach(col => {
             col.forEach(loop => {
                 if (loop.ps.length > 0) {
@@ -156,41 +158,99 @@ class LayoutPattern2 extends PatternShape {
                     const c = shading.get(p.x, p.y)
                     if (alpha(c) > 0) {
                         // loop.age = 1 - alpha(c) / 255
-                        loop.darkness = .05 - (alpha(c) / 255) / 20
+                        loop.darkness = .4 - (brightness(c) / 360) * (alpha(c) / 255) * .4
                     }
                 }
             })
         })
     }
 
-    setStitches(stitchType, data) {
-        this.stitchType = stitchType
+    setStitches(data) {
         this.stitchData = data
     }
 
     async drawStitches(denim = null) {
-        if (!this.stitchType) return
-        let stitches = []
+        if (!this.stitchData) return
+
+        const stitchType = this.stitchData.length == 2 ?
+            R.random_choice(['normal', 'doubleTrim', 'force']) :
+            R.random_choice(['normal', 'trim', 'zigzag', 'force'])
+
+        let rows = []
         for (const d of this.stitchData) {
-            stitches = [...stitches, ...this.stitches(d, 5, 5)]
+            rows.push(this.stitches(d, 12, 4))
         }
 
-        if (this.stitchType == stitchTypes.HANDMADE) {
-            for (const d of this.stitchData) {
-                stitches = this.stitches(d, 6, 8, true)
-                for (let st of stitches) {
-                    st[0].add(R.random(-threadSize, threadSize))
-                    st[1].add(R.random(-threadSize, threadSize))
+        if (['trim', 'doubleTrim'].includes(stitchType)) rows[rows.length - 1].splice(round(rows[rows.length - 1].length * R.random(.3, .7)))
+
+        // DRAW STITCHES
+        for (let row of rows) {
+            for (let st of row) {
+                const weftLoop = denim.hasWeftOn(st[0])
+                if (weftLoop) {
+                    const newLoop = new Loop(st, stitchColor, initialThreadSize * 1.3).wiggle().shadow()
+                    newLoop.age = weftLoop.age
+                    await newLoop.draw()
+                    await timeout()
                 }
             }
         }
 
-        for (let st of stitches) {
-            const weftLoop = denim.hasWeftOn(st[0])
-            if (weftLoop) {
-                const newLoop = new Loop(st, stitchColor, initialThreadSize * 2).wiggle().shadow()
-                newLoop.age = weftLoop.age
+        // DRAW EXTRAS
+        const extraColor = R.random_choice([stitchColor, R.random_choice([color(0), color(255, 0, 0), color(255)])])
+        if (stitchType == 'doubleTrim') {
+            const lastStitch = rows[1][rows[1].length - 1]
+            const stitchDir = vsub(lastStitch[1], lastStitch[0]).setMag(5)
+            const fillDir = stitchDir.copy().rotate(90)
+            const distBetweenStitches = (this.stitchData[1] - this.stitchData[0])
+
+            for (let i = -1 * globalScale; i < distBetweenStitches + 2 * globalScale; i += R.random(5) * globalScale) {
+                const p1 = vadd(lastStitch[0].add(stitchDir.copy().setMag(R.random(-2, 2) * globalScale)), fillDir.copy().setMag(i))
+                const p2 = vadd(lastStitch[1].add(stitchDir.copy().setMag(R.random(-2, 2) * globalScale)), fillDir.copy().setMag(i))
+                const weftLoop = denim.hasWeftOn(p1)
+                if (weftLoop) {
+                    const newLoop = new Loop([p1, p2], extraColor, initialThreadSize * 1.3).wiggle().shadow()
+                    newLoop.age = weftLoop.age
+                    await newLoop.draw()
+                    await timeout()
+                }
+            }
+        }
+
+        if (['trim', 'force'].includes(stitchType)) {
+            const lastRow = rows[rows.length - 1]
+            const lastStitch = stitchType == 'trim' ? lastRow[lastRow.length - 1] : R.random_choice(lastRow)
+            const stitchDir = vsub(lastStitch[1], lastStitch[0])
+            const perp = stitchDir.copy().rotate(90)
+            const l = R.random(50, 100)
+            for (let i = 1; i < l; i += R.random(5)) {
+                const p0 = vadd(lastStitch[1], stitchDir.copy().setMag(i * globalScale))
+                const dir = perp.copy().rotate(R.random(-10, 10)).setMag(R.random(5, 10) * globalScale)
+                const p1 = vadd(p0, dir)
+                const p2 = vsub(p0, dir)
+                const weftLoop = denim.hasWeftOn(p1)
+                if (weftLoop) {
+                    const newLoop = new Loop([p1, p2], extraColor, initialThreadSize * 1.3).wiggle().shadow()
+                    newLoop.age = weftLoop.age
+                    await newLoop.draw()
+                    await timeout()
+                }
+            }
+        }
+        if (stitchType == 'zigzag') {
+            const startStitchIndex = round(rows[0].length * R.random(.1, .7))
+            const endStitchIndex = floor(R.random(startStitchIndex, rows[0].length * (.9)))
+            for (let i = startStitchIndex; i < endStitchIndex; i++) {
+                const st = rows[0][i]
+                const dir = vsub(st[1], st[0]).rotate(45)
+                const p1 = vadd(st[0], dir)
+
+                let newLoop = new Loop([st[0], p1], extraColor, initialThreadSize * 1.3).wiggle().shadow()
                 await newLoop.draw()
+
+                newLoop = new Loop([p1, st[1]], extraColor, initialThreadSize * 1.3).wiggle().shadow()
+                await newLoop.draw()
+                await timeout()
             }
         }
     }
@@ -211,9 +271,7 @@ class SquarePatternShape extends LayoutPattern2 {
         const h = vdist(this.ps[0], this.ps[1])
         return { pos, w, h, rotation: this.rotation }
     }
-}
-
-const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
+}const gold = ['#a67c00', '#bf9b30', '#ffbf00', '#ffcf40', '#ffdc73']
 const natural = ['#ede8d3', '#fafaf7', '#fcfcfc']
 
 function checkers() {
@@ -233,16 +291,19 @@ function bleach_gradient() {
     }
 }
 function bleach_noise() {
-    const noiseScale = R.random(50,150) * initialThreadSize
+    const noiseScale = R.random(50, 150) * initialThreadSize
     const xoffset = R.random(10000)
     const yoffset = R.random(10000)
+    const threshold = R.random(0.2, 0.8)
+    const noiseNoise = round(R.random())
     return (clr, x, y) => {
-        const v = noise(x / noiseScale + xoffset, y / noiseScale + yoffset, R.random(0.3))
-        if (v < 0.5) clr = lerpColor(clr, color(255), v + 0.5)
+        const v = noise(x / noiseScale + xoffset, y / noiseScale + yoffset, R.random(0.3) * noiseNoise)
+        if (v < threshold) clr = lerpColor(clr, color(255), v + .5)
+        else if (v < threshold + .1) clr = lerpColor(clr, color(255), map(v, threshold, threshold + .1, threshold + .5, 0))
         return clr
     }
 }
-function bleach_large(){
+function bleach_large() {
     const bleachScale = R.random(20, 100) * initialThreadSize
     const xoffset = R.random(10000)
     const yoffset = R.random(10000)
@@ -253,7 +314,7 @@ function bleach_large(){
     }
 }
 
-function strips(){
+function strips() {
     const stripYSize = R.random(3)
     return (clr, x, y) => {
         if ((x + floor(y / stripYSize)) % (120 * initialThreadSize) < (60 * initialThreadSize)) clr = lerpColor(clr, color(255), 0.4)
@@ -262,25 +323,29 @@ function strips(){
 }
 
 let paintersLayers = []
-const initPainters = () => {
-    for (let i = 0; i < 2; i++)
-        paintersLayers.push({
-            s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), color: makeColor(R.random(0, 120), 360, R.random(200, 360))
-        })
-}
+
+const camoColors = ['#2E2C24', '#AC9F7C', '#503F38', '#56583D', '#E5E7EB', '#9D2328']
 function painters_camo() {
-    initPainters()
+    camoColors.sort(() => R.random_dec() - .5)
+    for (let i = 0; i < 4; i++)
+        paintersLayers.push({
+            s: R.random(100, 400), val: R.random(.4, .6), z: R.random(10), color: color(camoColors[i])
+        })
     return (clr, x, y) => {
         for (let i = paintersLayers.length - 1; i >= 0; i--) {
             const paintersLayer = paintersLayers[i]
             if (noise(x / paintersLayer.s, y / paintersLayer.s, paintersLayer.z) < paintersLayer.val)
-                clr = lerpColor(clr, paintersLayer.color, .7)
+                clr = lerpColor(clr, paintersLayer.color, .8)
         }
         return clr
     }
 }
 function painters_grad() {
-    initPainters()
+    const hue = R.random(360)
+    for (let i = 0; i < 2; i++)
+        paintersLayers.push({
+            s: R.random(100, 400), val: R.random(.4, .6), z: R.random(10), color: makeColor((hue + R.random(-60, 60)) % 360, 360, R.random(200, 360))
+        })
     return (clr, x, y) => {
         for (let i = paintersLayers.length - 1; i >= 0; i--) {
             const paintersLayer = paintersLayers[i]
@@ -290,17 +355,18 @@ function painters_grad() {
     }
 }
 function painters_pollock() {
-    initPainters()
     polockImage = createGraphics(baseWidth, baseHeight)
-    for (let i = 0; i < 150; i++) {
+    const sumSplashes = map(initialThreadSize, 0.5, 2, 500, 150)
+    const splashScale = R.random()
+    for (let i = 0; i < sumSplashes; i++) {
         polockImage.fill(R.random_choice([color(0), color(255)]))
         polockImage.noStroke()
         const pos = v(R.random(baseWidth), R.random(baseHeight))
         const dir = v(R.random(-.1, .1), R.random(-.1, .1))
-        const l = R.random(50, 250)
+        const l = R.random(200, 30) * initialThreadSize * splashScale
         let noiseVal = R.random(100)
         for (let j = 0; j < l; j++) {
-            const size = noise(noiseVal, 10) ** 2 * map(j, 0, l, 90, 10)
+            const size = noise(noiseVal, 10) ** 2 * map(j, 0, l, 45, 5) * initialThreadSize
             noiseVal += 0.02
             polockImage.circle(pos.x, pos.y, size)
             pos.add(dir)
@@ -323,7 +389,6 @@ function getColorFunc() {
 
     let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock, painters_grad]
     if (composition.name == "withDivide") options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers]
-    if (specialWeave) options = [bleach_gradient, bleach_large, strips, painters_grad]
     res = R.random_choice(options)
     return res
 }
@@ -356,7 +421,7 @@ const initBaseColor = () => {
     const r = R.random_dec()
     if (r < 0.7) {
         stitchColor = color('orange')
-        denimColor = makeColor(R.random(200, 250), 360, R.random(180, 360))
+        denimColor = makeColor(R.random(195, 240), 360, R.random(180, 360))
         patchStitchColor = R.random_choice([color(255, 0, 0), color(0), color(255)])
         print('indigo')
     } else if (r < 0.8) {
@@ -390,30 +455,35 @@ function neighborColor(c, h = 0, s = null, b = null) {
     colorMode(RGB)
     c1 = c1.toRGB()
     return c1
-}
+}let windTarget
 
 async function franzim(pos, dir, l) {
-    threadSize = initialThreadSize * 0.8
+    if (!windTarget) windTarget = R.random(360)
+    threadSize = initialThreadSize * .9
     dir.setMag(1)
     let ps = [pos]
     for (let i = 0; i < l; i++) {
-        const noiseVal = noise(15 * ps[ps.length - 1].x / baseWidth, 15 * ps[ps.length - 1].y / baseHeight)
-        const angle2 = (noiseVal - 0.5) * 40
-        dir.rotate(angle2 / 10 + R.random(-5, 5))
+        const noiseVal = noise(35 * ps[ps.length - 1].x / baseWidth, 35 * ps[ps.length - 1].y / baseHeight)
+        const angle2 = (noiseVal - 0.5) * 6
+        const wind = Math.sign(windTarget - dir.heading())
+        dir.rotate(angle2 + R.random(-.2, .2) + wind * .1)
         ps.push(ps[ps.length - 1].copy().add(dir))
     }
     ps = toCrv(ps)
+    if (ps.length < 2) return
 
     for (let i = 0; i < ps.length; i++) {
-        await burn(ps[i].copy().add(6 * i / ps.length, 6 * i / ps.length).mult(globalScale), this.threadSize * globalScale, 7)
+        await burn(ps[i].copy().add(6 * i / ps.length, 6 * i / ps.length).mult(globalScale), threadSize * globalScale * map(i, 0, ps.length, 1, 4), 5)
     }
 
-    await thread(ps, color(R.random_choice(warpColors)), 3, 50)
+    const clr = color(R.random_choice(warpColors))
+    clr.setAlpha(150)
+    await thread(ps, clr, 5, 50)
 }
 
 class Loop {
     constructor(ps, color, ts) {
-        this.threadSize = ts|| threadSize
+        this.threadSize = ts || threadSize
         this.originalColor = color
         this.color = color
         this.ps = ps
@@ -429,8 +499,9 @@ class Loop {
         this.ps = [p1, mid, p2]
         return this
     }
-    shadow(t = true) {
-        this.withShadow = t
+    shadow(t = true, data = { times: 2, size: 2, opacity: 30, offset: v(2, 0) }) {
+        if (t) this.withShadow = data
+        else this.withShadow = false
         return this
     }
     getFinalColor() {
@@ -443,10 +514,13 @@ class Loop {
     async draw() {
         if (this.ps.length <= 1) return
         if (this.withShadow)
-            for (const p of toCrv(this.ps)) await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 30)
+            for (let i = 0; i < this.withShadow.times; i++)
+                for (const p of toCrv(this.ps))
+                    await burn(p.copy().add(this.withShadow.offset).mult(globalScale), this.threadSize * globalScale * (this.withShadow.size + R.random(-1, 1)), this.withShadow.size.opacity)
         if (this.age) this.color = lerpColor(this.color, color(R.random_choice(natural)), this.age)
         if (this.yellow) this.color = lerpColor(this.color, color('#ebe1a2'), this.yellow)
-        if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
+        // if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
+        if (this.darkness != 0) this.color = neighborColor(this.color, 0, 0, -.5 * this.darkness * 360)
         // if (this.darkness != 0) this.color = lerpColor(this.color, color(0), this.darkness)
         threadSize = this.threadSize
         await thread(this.ps, this.color, 3)

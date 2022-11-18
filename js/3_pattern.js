@@ -132,16 +132,13 @@ class LayoutPattern2 extends PatternShape {
         const stitches = []
         l1 *= initialThreadSize
         l2 *= initialThreadSize
-        for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2 * R.random(0.9, 1.2) : l2) {
+        for (let i = 0; i < crvLength(crv) - l1; i += handMade ? l2 * R.random(0.9, 1.6) : l2) {
             const p1 = placeOnCurve(crv, i)
             if (!p1) continue
-            i += handMade ? l1 * R.random(0.9, 1.2) : l1
+            i += handMade ? l1 * R.random(0.9, 1.6) : l1
             const p2 = placeOnCurve(crv, i)
             if (!p2) break
-            const dir = vsub(p2, p1).rotate(10)
-            const p3 = vadd(p1, dir)
-            if (inCanvas(p1) || inCanvas(p3)) stitches.push([p1, p3])
-            // stitches.push([p1, p3])
+            if (inCanvas(p1) || inCanvas(p2)) stitches.push([p1, p2])
         }
         return stitches
     }
@@ -200,11 +197,11 @@ class LayoutPattern2 extends PatternShape {
         }
 
         // DRAW EXTRAS
-
+        const extraColor = R.random_choice([stitchColor, R.random_choice([color(0), color(255, 0, 0), color(255)])])
         if (stitchType == 'doubleTrim') {
             const lastStitch = rows[1][rows[1].length - 1]
             const stitchDir = vsub(lastStitch[1], lastStitch[0]).setMag(5)
-            const fillDir = stitchDir.copy().rotate(80)
+            const fillDir = stitchDir.copy().rotate(90)
             const distBetweenStitches = (this.stitchData[1] - this.stitchData[0])
 
             for (let i = -1 * globalScale; i < distBetweenStitches + 2 * globalScale; i += R.random(5) * globalScale) {
@@ -212,7 +209,7 @@ class LayoutPattern2 extends PatternShape {
                 const p2 = vadd(lastStitch[1].add(stitchDir.copy().setMag(R.random(-2, 2) * globalScale)), fillDir.copy().setMag(i))
                 const weftLoop = denim.hasWeftOn(p1)
                 if (weftLoop) {
-                    const newLoop = new Loop([p1, p2], color(255, 0, 0), initialThreadSize * 1.3).wiggle().shadow()
+                    const newLoop = new Loop([p1, p2], extraColor, initialThreadSize * 1.3).wiggle().shadow()
                     newLoop.age = weftLoop.age
                     await newLoop.draw()
                     await timeout()
@@ -233,7 +230,7 @@ class LayoutPattern2 extends PatternShape {
                 const p2 = vsub(p0, dir)
                 const weftLoop = denim.hasWeftOn(p1)
                 if (weftLoop) {
-                    const newLoop = new Loop([p1, p2], color(255, 0, 0), initialThreadSize * 1.3).wiggle().shadow()
+                    const newLoop = new Loop([p1, p2], extraColor, initialThreadSize * 1.3).wiggle().shadow()
                     newLoop.age = weftLoop.age
                     await newLoop.draw()
                     await timeout()
@@ -248,10 +245,10 @@ class LayoutPattern2 extends PatternShape {
                 const dir = vsub(st[1], st[0]).rotate(45)
                 const p1 = vadd(st[0], dir)
 
-                let newLoop = new Loop([st[0], p1], color(255, 0, 0), initialThreadSize * 1.3).wiggle().shadow()
+                let newLoop = new Loop([st[0], p1], extraColor, initialThreadSize * 1.3).wiggle().shadow()
                 await newLoop.draw()
 
-                newLoop = new Loop([p1, st[1]], color(255, 0, 0), initialThreadSize * 1.3).wiggle().shadow()
+                newLoop = new Loop([p1, st[1]], extraColor, initialThreadSize * 1.3).wiggle().shadow()
                 await newLoop.draw()
                 await timeout()
             }

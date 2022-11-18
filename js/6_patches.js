@@ -24,7 +24,7 @@ function makePatch(ps, color) {
     denim.extendChance = R.random(.2, .4)
     applyPatchShadow(denim)
     const stitches = patchStitches(denim)
-    const fringe = R.random_dec() < 0.5
+    const fringe = R.random_dec() < 0.3
     return { denim, stitches, fringe }
 }
 
@@ -106,17 +106,22 @@ function patchStitches(patch, stitchType) {
 
 async function drawStitches(stitches) {
     for (const s of stitches) {
-        await new Loop(s.slice(0, 2), s[2] ?? patchStitchColor, initialThreadSize * 1.3).wiggle().shadow().draw()
+        const ps = s.slice(0, 2)
+        const dir = vsub(ps[1], ps[0]).rotate(-90).setMag(5 * globalScale)
+        const crv = toCrv(ps).map(p => p.mult(globalScale))
+        for (const p of crv) await burn(vsub(p, dir), 12 * globalScale, 4)
+        for (const p of crv) await dodge(vadd(p, dir), 12 * globalScale, 4)
+        await new Loop(s.slice(0, 2), s[2] ? s[2] : patchStitchColor, initialThreadSize * 1.3).wiggle().shadow().draw()
         await timeout(0);
     }
 }
 
 function crossStitches(pattern) {
     let stitches = pattern.stitches(1, R.random(5, 15), R.random(5, 10), true).map(st => {
-        const numStitches = R.random(3, 5)
+        const numStitches = round(R.random(1,2))
         const l = vdist(st[0], st[1])
         const dir = vsub(st[1], st[0])
-        const perp = dir.copy().rotate(80)
+        const perp = dir.copy().rotate(90)
         const newStitches = []
         for (let i = 1; i < l; i += l / numStitches) {
             const p0 = vsub(st[0], perp.setMag(10))

@@ -1,161 +1,162 @@
 // --- AB Random
 
 class Random {
-    constructor() {
-        this.usage = 0
-        this.useA = false;
-        let sfc32 = function (uint128Hex) {
-            let a = parseInt(uint128Hex.substr(0, 8), 16);
-            let b = parseInt(uint128Hex.substr(8, 8), 16);
-            let c = parseInt(uint128Hex.substr(16, 8), 16);
-            let d = parseInt(uint128Hex.substr(24, 8), 16);
-            return function () {
-                a |= 0; b |= 0; c |= 0; d |= 0;
-                let t = (((a + b) | 0) + d) | 0;
-                d = (d + 1) | 0;
-                a = b ^ (b >>> 9);
-                b = (c + (c << 3)) | 0;
-                c = (c << 21) | (c >>> 11);
-                c = (c + t) | 0;
-                return (t >>> 0) / 4294967296;
-            };
-        };
-        // seed prngA with first half of tokenData.hash
-        this.prngA = new sfc32(tokenData.hash.substr(2, 32));
-        // seed prngB with second half of tokenData.hash
-        this.prngB = new sfc32(tokenData.hash.substr(34, 32));
-        for (let i = 0; i < 1e6; i += 2) {
-            this.prngA();
-            this.prngB();
-        }
-    }
-    // random number between 0 (inclusive) and 1 (exclusive)
-    random_dec() {
-        this.usage++
-        this.useA = !this.useA;
-        return this.useA ? this.prngA() : this.prngB();
-    }
-    // random number between a (inclusive) and b (exclusive)
-    random_num(a, b) {
-        return a + (b - a) * this.random_dec();
-    }
-    // random integer between a (inclusive) and b (inclusive)
-    // requires a < b for proper probability distribution
-    random_int(a, b) {
-        return Math.floor(this.random_num(a, b + 1));
-    }
-    // random value in an array of items
-    random_choice(list) {
-        return list[this.random_int(0, list.length - 1)];
-    }
-  
-    random(a = 1, b = 0){ return this.random_num(a,b) }
-    random_in(minMax){ return this.random_num(minMax[0], minMax[1]) }
+  constructor() {
+      this.usage = 0
+      this.useA = false;
+      let sfc32 = function (uint128Hex) {
+          let a = parseInt(uint128Hex.substr(0, 8), 16);
+          let b = parseInt(uint128Hex.substr(8, 8), 16);
+          let c = parseInt(uint128Hex.substr(16, 8), 16);
+          let d = parseInt(uint128Hex.substr(24, 8), 16);
+          return function () {
+              a |= 0; b |= 0; c |= 0; d |= 0;
+              let t = (((a + b) | 0) + d) | 0;
+              d = (d + 1) | 0;
+              a = b ^ (b >>> 9);
+              b = (c + (c << 3)) | 0;
+              c = (c << 21) | (c >>> 11);
+              c = (c + t) | 0;
+              return (t >>> 0) / 4294967296;
+          };
+      };
+      // seed prngA with first half of tokenData.hash
+      this.prngA = new sfc32(tokenData.hash.substr(2, 32));
+      // seed prngB with second half of tokenData.hash
+      this.prngB = new sfc32(tokenData.hash.substr(34, 32));
+      for (let i = 0; i < 1e6; i += 2) {
+          this.prngA();
+          this.prngB();
+      }
   }
-  
-  let R = new Random()
-  
-  // --- UTILS
-  
-  p5.Color.prototype.toRGB = function toRGB() {
-    return color(red(this), green(this), blue(this), alpha(this))
+  // random number between 0 (inclusive) and 1 (exclusive)
+  random_dec() {
+      this.usage++
+      this.useA = !this.useA;
+      return this.useA ? this.prngA() : this.prngB();
   }
-  
-  Array.prototype.rotate = function rotate() {
-    this.push(this.shift())
-    return this[0]
+  // random number between a (inclusive) and b (exclusive)
+  random_num(a, b) {
+      return a + (b - a) * this.random_dec();
   }
-  
-  const v = (x, y) => createVector(x, y),
-        v_rel = (x, y) => createVector(x * baseWidth, y * baseHeight),
-        vlerp = p5.Vector.lerp,
-        vdist = p5.Vector.dist
-        vadd = p5.Vector.add,
-        vsub = p5.Vector.sub
-  
-  // --- DRAW
-  
-  let allDots = 0
-  async function drawDot(p) {
-      allDots++
-      if (allDots % 20000 == 0) await timeout(0);
-      point(p.x, p.y)
+  // random integer between a (inclusive) and b (inclusive)
+  // requires a < b for proper probability distribution
+  random_int(a, b) {
+      return Math.floor(this.random_num(a, b + 1));
   }
-  function timeout(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-  }
-  
-  async function burn(p, size, force = 7) {
-      blendMode(BURN)
-      fill(30, 30, 90, force)
-      noStroke()
-      circle(p.x, p.y, size * R.random(0.4, 1))
-      // await softBrush(p, size)
-      blendMode(BLEND)
-  }
-  
-  // --- GEOMETRY
-  
-  function getPointOnEllipse(w, h, a) {
-    return createVector(w * 0.5 * cos(a), h * 0.5 * sin(a))
-  }
-  function getEllipse(w, h, step = 1, s = 0, e = 360) {
-    const ps = []
-    for (let a = s; a < e; a += step) ps.push(getPointOnEllipse(w, h, a))
-    return ps
-  }
-  
-  function toCrv(crv) {
-    crv.push(crv[crv.length - 1])
-    crv.splice(0, 0, crv[0])
-  
-    const newCrv = []
-    for (let i = 0; i < crv.length - 3; i++) {
-        const nextP = crv[i + 1]
-        const nextnextP = crv[i + 2]
-        const l = p5.Vector.dist(nextP, nextnextP)
-        for (let t = 0; t < l; t++) {
-            x = curvePoint(crv[i].x, crv[i + 1].x, crv[i + 2].x, crv[i + 3].x, t / l)
-            y = curvePoint(crv[i].y, crv[i + 1].y, crv[i + 2].y, crv[i + 3].y, t / l)
-            newCrv.push(createVector(x, y))
-        }
-    }
-    return newCrv
-  }
-  
-  function crvLength(crv) {
-    l = 0
-    for (let i=0;i<crv.length-1;i++){
-        l += p5.Vector.dist(crv[i], crv[i+1])
-    }
-    return l
-  }
-  
-  function placeOnCurve(crv,d){
-    let l = 0
-    for (let i=0;i<crv.length-1;i++){
-        l += sqrt((crv[i].x - crv[i+1].x) ** 2 + (crv[i].y - crv[i+1].y) ** 2)
-        if (l>=d) return crv[i]
-    }
-    return false
+  // random value in an array of items
+  random_choice(list) {
+      return list[this.random_int(0, list.length - 1)];
   }
 
-  function initDenimParams() {
-    warpSpacingMinMax = [0.8, 2]
-    weftSpacingMinMax = [0.8, 1]
-
-    startOffset = [2, 1, 0]
-    patternTop = [2]
-    patternBottom = [1]
-
-    specialWeave = false
-    if (R.random_dec() < 0.07) {
-        specialWeave = true
-        startOffset = Array(R.random_int(1, 3)).fill(0).map((a, i) => i)
-        patternTop = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
-        patternBottom = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
-    }
+  random(a = 1, b = 0){ return this.random_num(a,b) }
+  random_in(minMax){ return this.random_num(minMax[0], minMax[1]) }
 }
+
+let R = new Random()
+
+// --- UTILS
+
+p5.Color.prototype.toRGB = function toRGB() {
+  return color(red(this), green(this), blue(this), alpha(this))
+}
+
+Array.prototype.rotate = function rotate() {
+  this.push(this.shift())
+  return this[0]
+}
+
+const v = (x, y) => createVector(x, y),
+      v_rel = (x, y) => createVector(x * baseWidth, y * baseHeight),
+      vlerp = p5.Vector.lerp,
+      vdist = p5.Vector.dist
+      vadd = p5.Vector.add,
+      vsub = p5.Vector.sub
+
+// --- DRAW
+
+let allDots = 0
+async function drawDot(p) {
+    allDots++
+    if (allDots % 20000 == 0) await timeout(0);
+    point(p.x, p.y)
+}
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function burn(p, size, force = 7) {
+    blendMode(BURN)
+    fill(30, 30, 90, force)
+    noStroke()
+    circle(p.x, p.y, size * R.random(0.4, 1))
+    blendMode(BLEND)
+}
+
+async function dodge(p, size, force = 7) {
+    blendMode(DODGE)
+    fill(150, 150, 100, 3)
+    noStroke()
+    for (let i=0;i<force;i++)
+      circle(p.x + R.random(-size/2, size/2), p.y + R.random(-size/2, size/2), size * R.random(0.4, 1))
+    // await softBrush(p, size)
+    blendMode(BLEND)
+}
+
+// --- GEOMETRY
+
+function getPointOnEllipse(w, h, a) {
+  return createVector(w * 0.5 * cos(a), h * 0.5 * sin(a))
+}
+function getEllipse(w, h, step = 1, s = 0, e = 360) {
+  const ps = []
+  for (let a = s; a < e; a += step) ps.push(getPointOnEllipse(w, h, a))
+  return ps
+}
+
+function toCrv(crv) {
+  crv.push(crv[crv.length - 1])
+  crv.splice(0, 0, crv[0])
+
+  const newCrv = []
+  for (let i = 0; i < crv.length - 3; i++) {
+      const nextP = crv[i + 1]
+      const nextnextP = crv[i + 2]
+      const l = p5.Vector.dist(nextP, nextnextP)
+      for (let t = 0; t < l; t++) {
+          x = curvePoint(crv[i].x, crv[i + 1].x, crv[i + 2].x, crv[i + 3].x, t / l)
+          y = curvePoint(crv[i].y, crv[i + 1].y, crv[i + 2].y, crv[i + 3].y, t / l)
+          newCrv.push(createVector(x, y))
+      }
+  }
+  return newCrv
+}
+
+function crvLength(crv) {
+  l = 0
+  for (let i=0;i<crv.length-1;i++){
+      l += p5.Vector.dist(crv[i], crv[i+1])
+  }
+  return l
+}
+
+function placeOnCurve(crv,d){
+  let l = 0
+  for (let i=0;i<crv.length-1;i++){
+      l += sqrt((crv[i].x - crv[i+1].x) ** 2 + (crv[i].y - crv[i+1].y) ** 2)
+      if (l>=d) return crv[i]
+  }
+  return false
+}
+
+function inCanvas(p) {
+  return p.x > 0 && p.x < baseWidth && p.y > 0 && p.y < baseHeight
+}warpSpacingMinMax = [0.8, 2]
+weftSpacingMinMax = [0.8, 1]
+
+startOffset = [2, 1, 0]
+patternTop = [2]
+patternBottom = [1]
 
 class Denim {
     constructor(lp, color, age = 0.5) {
@@ -195,10 +196,10 @@ class Denim {
         threadSize = initialThreadSize
         await this.drawWarp()
         await this.drawWeft()
-        if (!args.dontFringe) await this.extendWarps()
         await this.lp.drawStitches(this)
+        if (!args.dontFringe) await this.extendWarps()
     }
-    async finishDraw(){
+    async finishDraw() {
         if (this.hasRips) await this.drawRips()
     }
 
@@ -236,7 +237,7 @@ class Denim {
         threadSize = initialThreadSize / 2
         for (const row of this.warp) {
             const threadColor = lerpColor(color(warpColors[0]), color(warpColors[1]), R.random_dec())
-            await thread(row, threadColor, 2)
+            await thread(row, threadColor, 5)
             if (i++ % 10 == 0) await timeout(0);
         }
     }
@@ -357,10 +358,15 @@ class Denim {
                         const second = partPoints[1].copy()
                         const last = partPoints[partPoints.length - 1].copy()
                         const secondToLast = partPoints[partPoints.length - 2].copy()
+                        const dir1 = vsub(first, second).rotate(90)
                         if (l > this.ripMin && l < this.ripMax) {
                             let newPs = []
-                            for (let h = 0; h <= 5; h++)
-                                newPs.push(vlerp(first, last, h / 5).add(0, R.random(-2, 4)))
+                            const sumPoints = ceil(l/10)
+                            for (let h = 0; h <= sumPoints; h++) {
+                                const newPos = vlerp(first, last, h / sumPoints)
+                                const offset = noise(newPos.x / 50, newPos.y / 50) * 40 - 20
+                                newPs.push(newPos.add(dir1.copy().setMag(offset)))
+                            }
                             newPs = toCrv(newPs)
                             row.splice(partIndexes[0], partIndexes[partIndexes.length - 1] - partIndexes[0], ...newPs)
                         }
@@ -414,6 +420,7 @@ class Denim {
                 await timeout(0);
         }
 
+        threadSize = initialThreadSize
         let counter = 0
         this.weftRips = this.weftRips.filter(a => R.random_dec() < 0.7)
         for (const end of this.weftRips) {
@@ -429,22 +436,18 @@ class Denim {
             })))
             c.setAlpha(50)
 
-            if (R.random_dec() < 0.25) {
-                stroke(c)
-                for (let a = 0; a < R.random(1, 5); a++) {
-                    await tinyThread(end.pos.copy().mult(globalScale), R.random(3, 10))
-                }
-            } else {
-                let ps = [end.pos.copy(), end.pos.copy()]
+            let ps = [end.pos.copy(), end.pos.copy()]
+            const tl = R.random_int(1, 4)
+            for (let l = 1; l < 4; l++) {
                 const dir = end.dir.setMag(4 * globalScale)
-                const l = R.random(6, 12)
-                for (let i = 0; i < l; i++) {
-                    dir.rotate(R.random(-25, 25))
+                for (let i = 0; i < l * tl; i++) {
+                    dir.rotate(R.random(-35, 35))
                     ps.push(ps[ps.length - 1].copy().add(dir))
                 }
-                await thread(ps, c, 5, 50)
+                await thread(ps, c, 10, 20)
+
+                if (counter++ % 30 == 0) await timeout(0);
             }
-            if (counter++ % 30 == 0) await timeout(0);
         }
     }
 
@@ -479,29 +482,28 @@ class Denim {
 
         const stitchPlaces = R.random() < 0.5 ? [12] : [9, 25]
 
-        gh.fill(255, 100)
-        newPattern.ps = pattern.getOffset(0)
-        newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(5) * initialThreadSize))
-        gh.fill(255, 30)
-        for (const stitchPlace of stitchPlaces) {
-            newPattern.ps = pattern.getOffset(stitchPlace + 1)
-            newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(5) * initialThreadSize))
+        gh.fill(0, 20)
+        newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(10) * initialThreadSize))
+
+        if (stitchPlaces.length == 2) {
+            let sVal = 0
+            newPattern.ps = pattern.getOffset(18)
+            newPattern.crv().forEach((p, i) => {
+                sVal += R.random(15)
+                const s = (sin(sVal) + 1) / 2
+                // const s = (sin(i * 2 / globalScale) + 1) / 2
+                gh.fill(150 * s, 100)
+                gh.circle(p.x, p.y, R.random(4, 25) * initialThreadSize)
+            })
         }
 
-        gh.fill(0, 30)
+        gh.fill(0, 20)
         for (const stitchPlace of stitchPlaces) {
             newPattern.ps = pattern.getOffset(stitchPlace)
             newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(7)) * initialThreadSize)
         }
 
-        for (let i = 0; i < stitchPlaces.length; i++) {
-            newPattern.ps = pattern.getOffset(stitchPlaces[i] - 12)
-            newPattern.crv().forEach((p, i) => {
-                const s = (sin(i * 8) + 1) / 2
-                gh.fill(255 * s, 7)
-                gh.circle(p.x, p.y, R.random(4, 20) * initialThreadSize)
-            })
-        }
+
 
         this.weft.forEach(col => {
             col.forEach(loop => {
@@ -511,12 +513,12 @@ class Denim {
                     if (alpha(c) > 0) {
                         loop.age = (brightness(c) / 360) * (alpha(c) / 255)
                         if (loop.yellow) loop.yellow = 0
-                        loop.darkness = .2 - (brightness(c) / 360) * (alpha(c) / 255) / 5
+                        loop.darkness = .4 - (brightness(c) / 360) * (alpha(c) / 255) * .4
                     }
                 }
             })
         })
-        pattern.setStitches(stitchTypes.DOUBLE, stitchPlaces)
+        pattern.setStitches(stitchPlaces)
         return this
     }
 }

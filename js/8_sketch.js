@@ -17,12 +17,11 @@ function setup() {
 
 
     composition = R.random_choice([withDivide, patches, largeRips, simple, mending, singleHole, fringeComp])
+    composition = fringeComp
     print(composition.name)
     initBaseColor()
     dyePattern1 = getColorFunc()
-    print(dyePattern1)
-    dyePattern2 = getColorFunc()
-    print(dyePattern2)
+    dyePattern2 = R.random() < 0.5 ? dyePattern1 : getColorFunc()
 
     makeImage()
 }
@@ -34,7 +33,7 @@ async function makeImage() {
     noFill()
 
     ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
-    initialThreadSize = 2//R.random(.9, 2)
+    initialThreadSize = R.random(1.3, 2)
     threadSize = initialThreadSize
 
     const d = new Date()
@@ -45,19 +44,18 @@ async function makeImage() {
     fullPattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
 
 
-
-
-
     background(BG)
     fill(255)
     textSize(10)
     textAlign(CENTER, CENTER)
-    text('Loading Jenim', width/2,height/2)
+    text('Loading Jenim', width / 2, height / 2)
     noFill()
     await timeout(30)
 
-    // initDenimParams()
-
     await composition()
+
     print('done')
+
+    // save('jenim' + tokenData.hash + '.png')
+    // setTimeout(() => location.reload() , 200)
 }

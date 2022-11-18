@@ -18,16 +18,19 @@ function bleach_gradient() {
     }
 }
 function bleach_noise() {
-    const noiseScale = R.random(50,150) * initialThreadSize
+    const noiseScale = R.random(50, 150) * initialThreadSize
     const xoffset = R.random(10000)
     const yoffset = R.random(10000)
+    const threshold = R.random(0.2, 0.8)
+    const noiseNoise = round(R.random())
     return (clr, x, y) => {
-        const v = noise(x / noiseScale + xoffset, y / noiseScale + yoffset, R.random(0.3))
-        if (v < 0.5) clr = lerpColor(clr, color(255), v + 0.5)
+        const v = noise(x / noiseScale + xoffset, y / noiseScale + yoffset, R.random(0.3) * noiseNoise)
+        if (v < threshold) clr = lerpColor(clr, color(255), v + .5)
+        else if (v < threshold + .1) clr = lerpColor(clr, color(255), map(v, threshold, threshold + .1, threshold + .5, 0))
         return clr
     }
 }
-function bleach_large(){
+function bleach_large() {
     const bleachScale = R.random(20, 100) * initialThreadSize
     const xoffset = R.random(10000)
     const yoffset = R.random(10000)
@@ -38,7 +41,7 @@ function bleach_large(){
     }
 }
 
-function strips(){
+function strips() {
     const stripYSize = R.random(3)
     return (clr, x, y) => {
         if ((x + floor(y / stripYSize)) % (120 * initialThreadSize) < (60 * initialThreadSize)) clr = lerpColor(clr, color(255), 0.4)
@@ -47,25 +50,29 @@ function strips(){
 }
 
 let paintersLayers = []
-const initPainters = () => {
-    for (let i = 0; i < 2; i++)
-        paintersLayers.push({
-            s: R.random(300, 600), val: R.random(.4, .6), z: R.random(10), color: makeColor(R.random(0, 120), 360, R.random(200, 360))
-        })
-}
+
+const camoColors = ['#2E2C24', '#AC9F7C', '#503F38', '#56583D', '#E5E7EB', '#9D2328']
 function painters_camo() {
-    initPainters()
+    camoColors.sort(() => R.random_dec() - .5)
+    for (let i = 0; i < 4; i++)
+        paintersLayers.push({
+            s: R.random(100, 400), val: R.random(.4, .6), z: R.random(10), color: color(camoColors[i])
+        })
     return (clr, x, y) => {
         for (let i = paintersLayers.length - 1; i >= 0; i--) {
             const paintersLayer = paintersLayers[i]
             if (noise(x / paintersLayer.s, y / paintersLayer.s, paintersLayer.z) < paintersLayer.val)
-                clr = lerpColor(clr, paintersLayer.color, .7)
+                clr = lerpColor(clr, paintersLayer.color, .8)
         }
         return clr
     }
 }
 function painters_grad() {
-    initPainters()
+    const hue = R.random(360)
+    for (let i = 0; i < 2; i++)
+        paintersLayers.push({
+            s: R.random(100, 400), val: R.random(.4, .6), z: R.random(10), color: makeColor((hue + R.random(-60, 60)) % 360, 360, R.random(200, 360))
+        })
     return (clr, x, y) => {
         for (let i = paintersLayers.length - 1; i >= 0; i--) {
             const paintersLayer = paintersLayers[i]
@@ -75,17 +82,18 @@ function painters_grad() {
     }
 }
 function painters_pollock() {
-    initPainters()
     polockImage = createGraphics(baseWidth, baseHeight)
-    for (let i = 0; i < 150; i++) {
+    const sumSplashes = map(initialThreadSize, 0.5, 2, 500, 150)
+    const splashScale = R.random()
+    for (let i = 0; i < sumSplashes; i++) {
         polockImage.fill(R.random_choice([color(0), color(255)]))
         polockImage.noStroke()
         const pos = v(R.random(baseWidth), R.random(baseHeight))
         const dir = v(R.random(-.1, .1), R.random(-.1, .1))
-        const l = R.random(50, 250)
+        const l = R.random(200, 30) * initialThreadSize * splashScale
         let noiseVal = R.random(100)
         for (let j = 0; j < l; j++) {
-            const size = noise(noiseVal, 10) ** 2 * map(j, 0, l, 90, 10)
+            const size = noise(noiseVal, 10) ** 2 * map(j, 0, l, 45, 5) * initialThreadSize
             noiseVal += 0.02
             polockImage.circle(pos.x, pos.y, size)
             pos.add(dir)
@@ -108,7 +116,6 @@ function getColorFunc() {
 
     let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock, painters_grad]
     if (composition.name == "withDivide") options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers]
-    // if (specialWeave) options = [bleach_gradient, bleach_large, strips, painters_grad]
     res = R.random_choice(options)
     return res
 }
@@ -141,7 +148,7 @@ const initBaseColor = () => {
     const r = R.random_dec()
     if (r < 0.7) {
         stitchColor = color('orange')
-        denimColor = makeColor(R.random(200, 250), 360, R.random(180, 360))
+        denimColor = makeColor(R.random(195, 240), 360, R.random(180, 360))
         patchStitchColor = R.random_choice([color(255, 0, 0), color(0), color(255)])
         print('indigo')
     } else if (r < 0.8) {

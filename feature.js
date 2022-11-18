@@ -82,7 +82,7 @@ function calculateFeatures(tokenData) {
     composition = R.random_choice(['Layered', 'Patchie', 'Distressed', 'Plain', 'Visible Mending', 'Ripped', 'Fringes'])
     colors = getColors(R)
     dyePattern1 = getColorFunc(R)
-    dyePattern2 = getColorFunc(R)
+    dyePattern2 = R.random() < 0.5 ? dyePattern1 : getColorFunc(R)
 
     feature_dyePattern2 = "None"
     seams = "None"

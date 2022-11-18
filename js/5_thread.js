@@ -6,17 +6,17 @@ async function franzim(pos, dir, l) {
     dir.setMag(1)
     let ps = [pos]
     for (let i = 0; i < l; i++) {
-        const noiseVal = noise(15 * ps[ps.length - 1].x / baseWidth, 15 * ps[ps.length - 1].y / baseHeight)
-        const angle2 = (noiseVal - 0.5) * 40
+        const noiseVal = noise(35 * ps[ps.length - 1].x / baseWidth, 35 * ps[ps.length - 1].y / baseHeight)
+        const angle2 = (noiseVal - 0.5) * 6
         const wind = Math.sign(windTarget - dir.heading())
-        dir.rotate(angle2 / 10 + R.random(-2, 2) + wind * .5)
+        dir.rotate(angle2 + R.random(-.2, .2) + wind * .1)
         ps.push(ps[ps.length - 1].copy().add(dir))
     }
     ps = toCrv(ps)
     if (ps.length < 2) return
 
     for (let i = 0; i < ps.length; i++) {
-        await burn(ps[i].copy().add(6 * i / ps.length, 6 * i / ps.length).mult(globalScale), threadSize * globalScale * map(i,0,ps.length,1,4), 5)
+        await burn(ps[i].copy().add(6 * i / ps.length, 6 * i / ps.length).mult(globalScale), threadSize * globalScale * map(i, 0, ps.length, 1, 4), 5)
     }
 
     const clr = color(R.random_choice(warpColors))
@@ -26,7 +26,7 @@ async function franzim(pos, dir, l) {
 
 class Loop {
     constructor(ps, color, ts) {
-        this.threadSize = ts|| threadSize
+        this.threadSize = ts || threadSize
         this.originalColor = color
         this.color = color
         this.ps = ps
@@ -42,8 +42,9 @@ class Loop {
         this.ps = [p1, mid, p2]
         return this
     }
-    shadow(t = true) {
-        this.withShadow = t
+    shadow(t = true, data = { times: 2, size: 2, opacity: 30, offset: v(2, 0) }) {
+        if (t) this.withShadow = data
+        else this.withShadow = false
         return this
     }
     getFinalColor() {
@@ -56,9 +57,9 @@ class Loop {
     async draw() {
         if (this.ps.length <= 1) return
         if (this.withShadow)
-            for (let i=0;i<2;i++)
-                for (const p of toCrv(this.ps)) 
-                    await burn(p.copy().add(2, 0).mult(globalScale), this.threadSize * globalScale * R.random(1, 3), 30)
+            for (let i = 0; i < this.withShadow.times; i++)
+                for (const p of toCrv(this.ps))
+                    await burn(p.copy().add(this.withShadow.offset).mult(globalScale), this.threadSize * globalScale * (this.withShadow.size + R.random(-1, 1)), this.withShadow.size.opacity)
         if (this.age) this.color = lerpColor(this.color, color(R.random_choice(natural)), this.age)
         if (this.yellow) this.color = lerpColor(this.color, color('#ebe1a2'), this.yellow)
         // if (this.darkness != 0) this.color = neighborColor(this.color, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)

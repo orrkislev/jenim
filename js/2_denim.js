@@ -1,19 +1,9 @@
-// function initDenimParams() {
-    warpSpacingMinMax = [0.8, 2]
-    weftSpacingMinMax = [0.8, 1]
+warpSpacingMinMax = [0.8, 2]
+weftSpacingMinMax = [0.8, 1]
 
-    startOffset = [2, 1, 0]
-    patternTop = [2]
-    patternBottom = [1]
-
-    // specialWeave = false
-    // if (R.random_dec() < 0.07) {
-    //     specialWeave = true
-    //     startOffset = Array(R.random_int(1, 3)).fill(0).map((a, i) => i)
-    //     patternTop = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
-    //     patternBottom = Array(R.random_int(1, 3)).fill(0).map(a => R.random_int(1, 3))
-    // }
-// }
+startOffset = [2, 1, 0]
+patternTop = [2]
+patternBottom = [1]
 
 class Denim {
     constructor(lp, color, age = 0.5) {
@@ -215,10 +205,15 @@ class Denim {
                         const second = partPoints[1].copy()
                         const last = partPoints[partPoints.length - 1].copy()
                         const secondToLast = partPoints[partPoints.length - 2].copy()
+                        const dir1 = vsub(first, second).rotate(90)
                         if (l > this.ripMin && l < this.ripMax) {
                             let newPs = []
-                            for (let h = 0; h <= 5; h++)
-                                newPs.push(vlerp(first, last, h / 5).add(0, R.random(-2, 4)))
+                            const sumPoints = ceil(l/10)
+                            for (let h = 0; h <= sumPoints; h++) {
+                                const newPos = vlerp(first, last, h / sumPoints)
+                                const offset = noise(newPos.x / 50, newPos.y / 50) * 40 - 20
+                                newPs.push(newPos.add(dir1.copy().setMag(offset)))
+                            }
                             newPs = toCrv(newPs)
                             row.splice(partIndexes[0], partIndexes[partIndexes.length - 1] - partIndexes[0], ...newPs)
                         }
