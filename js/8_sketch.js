@@ -17,7 +17,7 @@ function setup() {
 
 
     composition = R.random_choice([withDivide, patches, largeRips, simple, mending, singleHole, fringeComp])
-    composition = fringeComp
+    // composition = fringeComp
     print(composition.name)
     initBaseColor()
     dyePattern1 = getColorFunc()
