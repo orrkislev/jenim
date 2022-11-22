@@ -415,7 +415,7 @@ class Denim {
     async drawRips() {
         let i = 0
         for (const rip of this.warpRips) {
-            await franzim(rip.pos, rip.dir, rip.len)
+            await franzim(rip.pos, rip.dir, rip.len, .6)
             if (i++ % 10 == 0)
                 await timeout(0);
         }

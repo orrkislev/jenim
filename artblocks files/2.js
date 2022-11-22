@@ -423,17 +423,14 @@ const initBaseColor = () => {
         stitchColor = color('orange')
         denimColor = makeColor(R.random(195, 240), 360, R.random(180, 360))
         patchStitchColor = R.random_choice([color(255, 0, 0), color(0), color(255)])
-        print('indigo')
     } else if (r < 0.8) {
         stitchColor = color(255)
         denimColor = makeColor(0, 0, 0)
         patchStitchColor = color(255)
-        print('black')
     } else {
         stitchColor = color(255)
         denimColor = makeColor(R.random(0, 70), R.random(200, 360), R.random(100, 250))
         patchStitchColor = color(0)
-        print('colorful')
     }
 }
 
@@ -457,17 +454,33 @@ function neighborColor(c, h = 0, s = null, b = null) {
     return c1
 }let windTarget
 
-async function franzim(pos, dir, l) {
+async function franzim(pos, dir, l, trsz = .9) {
     if (!windTarget) windTarget = R.random(360)
-    threadSize = initialThreadSize * .9
+    threadSize = initialThreadSize * trsz
     dir.setMag(1)
     let ps = [pos]
-    for (let i = 0; i < l; i++) {
+    // for (let i = 0; i < l; i++) {
+    //     const noiseVal = noise(35 * ps[ps.length - 1].x / baseWidth, 35 * ps[ps.length - 1].y / baseHeight)
+    //     const angle2 = (noiseVal - 0.5) * 6
+    //     const wind = Math.sign(windTarget - dir.heading())
+    //     dir.rotate(angle2 + R.random(-.2, .2) + wind * .1)
+    //     ps.push(ps[ps.length - 1].copy().add(dir))
+    // }
+
+    const dir1 = dir.copy().rotate(90)
+    const sumPoints = ceil(l / 10)
+    for (let h = 0; h <= sumPoints; h++) {
+        const newPos = ps[ps.length - 1]
+        const offset = noise(newPos.x / 50, newPos.y / 50) * 40 - 20
         const noiseVal = noise(35 * ps[ps.length - 1].x / baseWidth, 35 * ps[ps.length - 1].y / baseHeight)
-        const angle2 = (noiseVal - 0.5) * 6
+        const angle2 = (noiseVal - 0.5) * 60
         const wind = Math.sign(windTarget - dir.heading())
-        dir.rotate(angle2 + R.random(-.2, .2) + wind * .1)
-        ps.push(ps[ps.length - 1].copy().add(dir))
+        const dirRotation = angle2 + R.random(-2,2) + wind
+        dir.rotate(dirRotation)
+        dir1.rotate(dirRotation)
+        const newPoint = newPos.copy().add(dir.copy().mult(10))
+        newPoint.add(dir1.copy().mult(offset))
+        ps.push(newPoint)
     }
     ps = toCrv(ps)
     if (ps.length < 2) return

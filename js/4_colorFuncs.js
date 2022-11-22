@@ -114,7 +114,7 @@ function getColorFunc() {
     let r = R.random_dec()
     if (r < 0.5) return null
 
-    let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock, painters_grad]
+    let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock, null]
     if (composition.name == "withDivide") options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers]
     res = R.random_choice(options)
     return res
@@ -150,17 +150,14 @@ const initBaseColor = () => {
         stitchColor = color('orange')
         denimColor = makeColor(R.random(195, 240), 360, R.random(180, 360))
         patchStitchColor = R.random_choice([color(255, 0, 0), color(0), color(255)])
-        print('indigo')
     } else if (r < 0.8) {
         stitchColor = color(255)
         denimColor = makeColor(0, 0, 0)
         patchStitchColor = color(255)
-        print('black')
     } else {
         stitchColor = color(255)
         denimColor = makeColor(R.random(0, 70), R.random(200, 360), R.random(100, 250))
         patchStitchColor = color(0)
-        print('colorful')
     }
 }
 

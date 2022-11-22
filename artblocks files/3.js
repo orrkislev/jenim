@@ -457,8 +457,7 @@ function setup() {
 
 
     composition = R.random_choice([withDivide, patches, largeRips, simple, mending, singleHole, fringeComp])
-    composition = fringeComp
-    print(composition.name)
+    // composition = largeRips
     initBaseColor()
     dyePattern1 = getColorFunc()
     dyePattern2 = R.random() < 0.5 ? dyePattern1 : getColorFunc()
