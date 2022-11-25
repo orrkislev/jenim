@@ -54,7 +54,8 @@ function calculateFeatures(tokenData) {
         let r = R.random_dec()
         if (r < 0.5) return 'Plain'
 
-        let options = ["Bleaches", "Bleaches", "Bleaches", "Jailhouse Strips", "Checkers", 'Camou', 'Painters Pants', 'Tie Dye']
+        let options = ["Bleaches", "Bleaches", "Bleaches", "Jailhouse Strips", "Checkers",'Painters Pants', 'Plain']
+        if (!(['Distressed', 'Fringes'].includes(composition))) options.push('Camou')
         if (composition == "Layered") options = ["Bleaches", 'Bleaches', 'Bleaches', 'Jailhouse Strips', 'Checkers']
         res = R.random_choice(options)
         return res

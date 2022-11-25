@@ -275,11 +275,11 @@ class SquarePatternShape extends LayoutPattern2 {
 const natural = ['#ede8d3', '#fafaf7', '#fcfcfc']
 
 function checkers() {
-    const gridSize = 120 * initialThreadSize
-    const haldGridSize = 60 * initialThreadSize
+    const gridSize = R.random(120, 220) * initialThreadSize
+    const haldGridSize = gridSize / 2
     return (clr, x, y) => {
         if ((x % gridSize < haldGridSize && y % gridSize < haldGridSize) || (x % gridSize > haldGridSize && y % gridSize > haldGridSize)) {
-            clr = lerpColor(clr, color(0), 0.3)
+            clr = lerpColor(clr, color(0), 0.4)
         }
         return clr
     }
@@ -295,11 +295,12 @@ function bleach_noise() {
     const xoffset = R.random(10000)
     const yoffset = R.random(10000)
     const threshold = R.random(0.2, 0.8)
+    const thresholdOffset = R.random(0.1)
     const noiseNoise = round(R.random())
     return (clr, x, y) => {
         const v = noise(x / noiseScale + xoffset, y / noiseScale + yoffset, R.random(0.3) * noiseNoise)
         if (v < threshold) clr = lerpColor(clr, color(255), v + .5)
-        else if (v < threshold + .1) clr = lerpColor(clr, color(255), map(v, threshold, threshold + .1, threshold + .5, 0))
+        else if (v < threshold + thresholdOffset) clr = lerpColor(clr, color(255), map(v, threshold, threshold + thresholdOffset, threshold + .5, 0))
         return clr
     }
 }
@@ -316,8 +317,9 @@ function bleach_large() {
 
 function strips() {
     const stripYSize = R.random(3)
+    const stripeScale = R.random(90, 180)
     return (clr, x, y) => {
-        if ((x + floor(y / stripYSize)) % (120 * initialThreadSize) < (60 * initialThreadSize)) clr = lerpColor(clr, color(255), 0.4)
+        if ((x + floor(y / stripYSize)) % (stripeScale * initialThreadSize) < ((stripeScale / 2) * initialThreadSize)) clr = lerpColor(clr, color(255), 0.4)
         return clr
     }
 }
@@ -387,7 +389,8 @@ function getColorFunc() {
     let r = R.random_dec()
     if (r < 0.5) return null
 
-    let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_camo, painters_pollock, painters_grad]
+    let options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers, painters_pollock, null]
+    if (!(['largeRips', 'fringeComp'].includes(composition.name))) options.push(painters_camo)
     if (composition.name == "withDivide") options = [bleach_gradient, bleach_large, bleach_noise, strips, checkers]
     res = R.random_choice(options)
     return res
@@ -421,9 +424,10 @@ const initBaseColor = () => {
     const r = R.random_dec()
     if (r < 0.7) {
         stitchColor = color('orange')
-        denimColor = makeColor(R.random(195, 240), 360, R.random(180, 360))
+        const hue = R.random(195, 240)
+        denimColor = makeColor(hue, map(abs(hue - 220), 0, 25, 360, 250), R.random(180, 360))
         patchStitchColor = R.random_choice([color(255, 0, 0), color(0), color(255)])
-    } else if (r < 0.8) {
+    } else if (r < 0.88) {
         stitchColor = color(255)
         denimColor = makeColor(0, 0, 0)
         patchStitchColor = color(255)

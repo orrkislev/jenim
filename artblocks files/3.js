@@ -266,7 +266,7 @@ async function mending() {
     const xx = mendingType == 1 ? 15 : 0
     const threshold = R.random()
     const threshold2 = R.random()
-    const colorType = R.random_choice([0, 1, 2])
+    const colorType = R.random()<.8 ? 0 : (R.random()<.8 ? 1 : 2)
     for (let x = bounds.left - 100; x < bounds.right + 100; x += R.random(20, 30)) {
         if (colorType == 1) clr = R.random_choice([color(255, 0, 0), color(0), color(255)])
         for (let y = bounds.top - R.random(100); y < bounds.bottom + R.random(100); y += R.random(20, 30)) {

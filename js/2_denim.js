@@ -17,8 +17,8 @@ class Denim {
         this.age = age
         this.rotation = 0
         this.ripNoiseZ = R.random(1000)
-        this.ripThreshold = R.random(.18, .32)
-        this.ripMin = R.random(30, 70) * initialThreadSize
+        this.ripThreshold = R.random(.18, .25)
+        this.ripMin = R.random(50, 100) * initialThreadSize
         this.ripMax = R.random(this.ripMin, 160) * initialThreadSize
         this.ripExtendMasks = []
     }
