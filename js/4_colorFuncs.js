@@ -123,44 +123,56 @@ function getColorFunc() {
     return res
 }
 
+function initColorFunc(colorFunc) {
+    if (!colorFunc) return null
+    return { func: colorFunc(), offsetX: R.random(-35, 35), offsetY: R.random(-35, 35) }
+}
+
+// function applyColorFunc(denim, colorFunc) {
+//     if (colorFunc) {
+//         denim.weft.forEach(col => {
+//             col.forEach(loop => {
+//                 if (loop.ps.length > 0) {
+//                     const p = loop.ps[0]
+//                     loop.color = colorFunc.func(loop.color, p.x + colorFunc.offsetX, p.y + colorFunc.offsetY)
+//                 }
+//             })
+//         })
+//     }
+// }
 
 
 
 
 
-function applyColorFunc(denim, colorFunc) {
-    if (colorFunc) {
-        colorFunc = colorFunc()
-        const offsetPosX = R.random(-35, 35)
-        const offsetPosY = R.random(-35, 35)
-        denim.weft.forEach(col => {
-            col.forEach(loop => {
-                if (loop.ps.length > 0) {
-                    const p = loop.ps[0]
-                    loop.color = colorFunc(loop.color, p.x + offsetPosX, p.y + offsetPosY)
-                }
-            })
-        })
+const getBaseColor = () =>{
+    let r = R.random_dec()
+    if (r < 0.7) {
+        patchStitch = R.random_choice([color(255, 0, 0), color(0), color(255)])
+        coloring =  { color: 'Indigo', denimStitch: 'Ochre', patchStitch }
+    } else if (r < 0.8) {
+        coloring =  { color: 'Charcoal', denimStitch: 'White', patchStitch: 'Black' }
+    } else {
+        coloring =  { color: 'Colored', denimStitch: 'White', patchStitch: 'Black' }
     }
 }
 
-
-
-
 const initBaseColor = () => {
-    const r = R.random_dec()
-    if (r < 0.7) {
-        stitchColor = color('orange')
+    if (coloring.color == 'Indigo') {
         const hue = R.random(195, 240)
-        denimColor = makeColor(hue, map(abs(hue - 220), 0, 25, 360, 250), R.random(180, 360))
-        patchStitchColor = R.random_choice([color(255, 0, 0), color(0), color(255)])
-    } else if (r < 0.88) {
-        stitchColor = color(255)
+        denimColor = makeColor(
+            hue, 
+            map(abs(hue - 220), 0, 25, 360, 250), 
+            R.random(180, 360))
+        stitchColor = color('orange')
+        patchStitchColor = coloring.patchStitch
+    } else if (coloring.color == 'Charcoal') {
         denimColor = makeColor(0, 0, 0)
+        stitchColor = color(255)
         patchStitchColor = color(255)
     } else {
-        stitchColor = color(255)
         denimColor = makeColor(R.random(0, 70), R.random(200, 360), R.random(100, 250))
+        stitchColor = color(255)
         patchStitchColor = color(0)
     }
 }
@@ -173,6 +185,7 @@ function makeColor(h, s = 360, b = 360) {
     colorMode(RGB)
     c = c.toRGB()
     return c
+    
 }
 function neighborColor(c, h = 0, s = null, b = null) {
     colorMode(HSB, 360)

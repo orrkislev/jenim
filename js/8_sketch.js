@@ -8,32 +8,41 @@ const baseWidth = 1000
 const baseHeight = baseWidth * (7 / 5)
 let globalScale;
 
+
+function initFeatures() {
+    composition = R.random_choice([withDivide, patches, largeRips, simple, mending, singleHole, fringeComp])
+    // composition = mending
+    print(composition)
+    getBaseColor()
+    dyePattern1 = getColorFunc()
+    dyePattern2 = R.random() < 0.5 ? dyePattern1 : getColorFunc()
+}
+
+
+
+
 function setup() {
+    initFeatures()
+
     noiseSeed(R.random_int(20000))
 
     if (windowWidth * (7 / 5) > windowHeight) canvas = createCanvas(windowHeight / (7 / 5), windowHeight);
     else canvas = createCanvas(windowWidth, windowWidth * (7 / 5))
     globalScale = width / baseWidth
 
+    initialThreadSize = R.random(1.3, 2)
+    threadSize = initialThreadSize
 
-    composition = R.random_choice([withDivide, patches, largeRips, simple, mending, singleHole, fringeComp])
-    // composition = largeRips
+    dyePattern1 = initColorFunc(dyePattern1)
+    dyePattern2 = initColorFunc(dyePattern2)
     initBaseColor()
-    dyePattern1 = getColorFunc()
-    dyePattern2 = R.random() < 0.5 ? dyePattern1 : getColorFunc()
 
-    makeImage()
-}
+    ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
 
-async function makeImage() {
     angleMode(DEGREES)
     noLoop()
     noStroke()
     noFill()
-
-    ripNoiseScale = [R.random(5, 10), R.random(5, 10)]
-    initialThreadSize = R.random(1.3, 2)
-    threadSize = initialThreadSize
 
     const d = new Date()
     const fullYears = d.getFullYear() - 2023
@@ -42,7 +51,10 @@ async function makeImage() {
 
     fullPattern = new SquarePatternShape(0, 0, baseWidth, baseHeight)
 
+    makeImage()
+}
 
+async function makeImage() {
     background(BG)
     fill(255)
     textSize(10)
@@ -52,9 +64,10 @@ async function makeImage() {
     await timeout(30)
 
     await composition()
-
     print('done')
 
-    // save('jenim' + tokenData.hash + '.png')
-    // setTimeout(() => location.reload() , 200)
+    // save(`jenim ${tokenData.hash.slice(0, 3)} ${extraAge}.png`)
+    // setTimeout(() => {
+    //     window.location.href = `?age=${extraAge + 5}`
+    // }, 200)
 }

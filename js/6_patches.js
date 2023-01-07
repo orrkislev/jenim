@@ -23,7 +23,7 @@ function makePatch(ps, color) {
     denim.warpExtensions = [5, 20]
     denim.extendChance = R.random(.2, .4)
     applyPatchShadow(denim)
-    const stitches = patchStitches(denim)
+    const stitches = patchStitches(denim).filter(_ => R.random_dec() > globalAge)
     const fringe = R.random_dec() < 0.3
     return { denim, stitches, fringe }
 }
@@ -118,7 +118,7 @@ async function drawStitches(stitches) {
 
 function crossStitches(pattern) {
     let stitches = pattern.stitches(1, R.random(5, 15), R.random(5, 10), true).map(st => {
-        const numStitches = round(R.random(1,2))
+        const numStitches = round(R.random(1, 2))
         const l = vdist(st[0], st[1])
         const dir = vsub(st[1], st[0])
         const perp = dir.copy().rotate(90)

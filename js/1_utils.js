@@ -2,55 +2,66 @@
 
 class Random {
   constructor() {
-      this.usage = 0
-      this.useA = false;
-      let sfc32 = function (uint128Hex) {
-          let a = parseInt(uint128Hex.substr(0, 8), 16);
-          let b = parseInt(uint128Hex.substr(8, 8), 16);
-          let c = parseInt(uint128Hex.substr(16, 8), 16);
-          let d = parseInt(uint128Hex.substr(24, 8), 16);
-          return function () {
-              a |= 0; b |= 0; c |= 0; d |= 0;
-              let t = (((a + b) | 0) + d) | 0;
-              d = (d + 1) | 0;
-              a = b ^ (b >>> 9);
-              b = (c + (c << 3)) | 0;
-              c = (c << 21) | (c >>> 11);
-              c = (c + t) | 0;
-              return (t >>> 0) / 4294967296;
-          };
+    this.useA = false;
+    this.sfc32 = function (uint128Hex) {
+      let a = parseInt(uint128Hex.substr(0, 8), 16);
+      let b = parseInt(uint128Hex.substr(8, 8), 16);
+      let c = parseInt(uint128Hex.substr(16, 8), 16);
+      let d = parseInt(uint128Hex.substr(24, 8), 16);
+      return function () {
+        a |= 0; b |= 0; c |= 0; d |= 0;
+        let t = (((a + b) | 0) + d) | 0;
+        d = (d + 1) | 0;
+        a = b ^ (b >>> 9);
+        b = (c + (c << 3)) | 0;
+        c = (c << 21) | (c >>> 11);
+        c = (c + t) | 0;
+        return (t >>> 0) / 4294967296;
       };
-      // seed prngA with first half of tokenData.hash
-      this.prngA = new sfc32(tokenData.hash.substr(2, 32));
-      // seed prngB with second half of tokenData.hash
-      this.prngB = new sfc32(tokenData.hash.substr(34, 32));
-      for (let i = 0; i < 1e6; i += 2) {
-          this.prngA();
-          this.prngB();
-      }
+    };
+    // seed prngA with first half of tokenData.hash
+    this.prngA = new this.sfc32(tokenData.hash.substr(2, 32));
+    // seed prngB with second half of tokenData.hash
+    this.prngB = new this.sfc32(tokenData.hash.substr(34, 32));
+    for (let i = 0; i < 1e6; i += 2) {
+      this.prngA();
+      this.prngB();
+    }
+  }
+
+  reset(times) {
+    this.prngA = new this.sfc32(tokenData.hash.substr(2, 32));
+    this.prngB = new this.sfc32(tokenData.hash.substr(34, 32));
+    for (let i = 0; i < 1e6; i += 2) {
+      this.prngA();
+      this.prngB();
+    }
+    for (let i = 0; i < times; i++) {
+      this.random_dec()
+    }
   }
   // random number between 0 (inclusive) and 1 (exclusive)
   random_dec() {
-      this.usage++
-      this.useA = !this.useA;
-      return this.useA ? this.prngA() : this.prngB();
+    this.usage++
+    this.useA = !this.useA;
+    return this.useA ? this.prngA() : this.prngB();
   }
   // random number between a (inclusive) and b (exclusive)
   random_num(a, b) {
-      return a + (b - a) * this.random_dec();
+    return a + (b - a) * this.random_dec();
   }
   // random integer between a (inclusive) and b (inclusive)
   // requires a < b for proper probability distribution
   random_int(a, b) {
-      return Math.floor(this.random_num(a, b + 1));
+    return Math.floor(this.random_num(a, b + 1));
   }
   // random value in an array of items
   random_choice(list) {
-      return list[this.random_int(0, list.length - 1)];
+    return list[this.random_int(0, list.length - 1)];
   }
 
-  random(a = 1, b = 0){ return this.random_num(a,b) }
-  random_in(minMax){ return this.random_num(minMax[0], minMax[1]) }
+  random(a = 1, b = 0) { return this.random_num(a, b) }
+  random_in(minMax) { return this.random_num(minMax[0], minMax[1]) }
 }
 
 let R = new Random()
@@ -67,40 +78,40 @@ Array.prototype.rotate = function rotate() {
 }
 
 const v = (x, y) => createVector(x, y),
-      v_rel = (x, y) => createVector(x * baseWidth, y * baseHeight),
-      vlerp = p5.Vector.lerp,
-      vdist = p5.Vector.dist
-      vadd = p5.Vector.add,
-      vsub = p5.Vector.sub
+  v_rel = (x, y) => createVector(x * baseWidth, y * baseHeight),
+  vlerp = p5.Vector.lerp,
+  vdist = p5.Vector.dist
+vadd = p5.Vector.add,
+  vsub = p5.Vector.sub
 
 // --- DRAW
 
 let allDots = 0
 async function drawDot(p) {
-    allDots++
-    if (allDots % 20000 == 0) await timeout(0);
-    point(p.x, p.y)
+  allDots++
+  if (allDots % 20000 == 0) await timeout(0);
+  point(p.x, p.y)
 }
 function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function burn(p, size, force = 7) {
-    blendMode(BURN)
-    fill(30, 30, 90, force)
-    noStroke()
-    circle(p.x, p.y, size * R.random(0.4, 1))
-    blendMode(BLEND)
+  blendMode(BURN)
+  fill(30, 30, 90, force)
+  noStroke()
+  circle(p.x, p.y, size * R.random(0.4, 1))
+  blendMode(BLEND)
 }
 
 async function dodge(p, size, force = 7) {
-    blendMode(DODGE)
-    fill(150, 150, 100, 3)
-    noStroke()
-    for (let i=0;i<force;i++)
-      circle(p.x + R.random(-size/2, size/2), p.y + R.random(-size/2, size/2), size * R.random(0.4, 1))
-    // await softBrush(p, size)
-    blendMode(BLEND)
+  blendMode(DODGE)
+  fill(150, 150, 100, 3)
+  noStroke()
+  for (let i = 0; i < force; i++)
+    circle(p.x + R.random(-size / 2, size / 2), p.y + R.random(-size / 2, size / 2), size * R.random(0.4, 1))
+  // await softBrush(p, size)
+  blendMode(BLEND)
 }
 
 // --- GEOMETRY
@@ -120,33 +131,47 @@ function toCrv(crv) {
 
   const newCrv = []
   for (let i = 0; i < crv.length - 3; i++) {
-      const nextP = crv[i + 1]
-      const nextnextP = crv[i + 2]
-      const l = p5.Vector.dist(nextP, nextnextP)
-      for (let t = 0; t < l; t++) {
-          x = curvePoint(crv[i].x, crv[i + 1].x, crv[i + 2].x, crv[i + 3].x, t / l)
-          y = curvePoint(crv[i].y, crv[i + 1].y, crv[i + 2].y, crv[i + 3].y, t / l)
-          newCrv.push(createVector(x, y))
-      }
+    const nextP = crv[i + 1]
+    const nextnextP = crv[i + 2]
+    const l = p5.Vector.dist(nextP, nextnextP)
+    for (let t = 0; t < l; t++) {
+      x = curvePoint(crv[i].x, crv[i + 1].x, crv[i + 2].x, crv[i + 3].x, t / l)
+      y = curvePoint(crv[i].y, crv[i + 1].y, crv[i + 2].y, crv[i + 3].y, t / l)
+      newCrv.push(createVector(x, y))
+    }
   }
   return newCrv
 }
 
 function crvLength(crv) {
   l = 0
-  for (let i=0;i<crv.length-1;i++){
-      l += p5.Vector.dist(crv[i], crv[i+1])
+  for (let i = 0; i < crv.length - 1; i++) {
+    l += p5.Vector.dist(crv[i], crv[i + 1])
   }
   return l
 }
 
-function placeOnCurve(crv,d){
+function placeOnCurve(crv, d) {
   let l = 0
-  for (let i=0;i<crv.length-1;i++){
-      l += sqrt((crv[i].x - crv[i+1].x) ** 2 + (crv[i].y - crv[i+1].y) ** 2)
-      if (l>=d) return crv[i]
+  for (let i = 0; i < crv.length - 1; i++) {
+    l += sqrt((crv[i].x - crv[i + 1].x) ** 2 + (crv[i].y - crv[i + 1].y) ** 2)
+    if (l >= d) return crv[i]
   }
   return false
+}
+function curveCrawler(crv) {
+  this.crv = crv
+  this.l = 0
+  this.i = 0
+  this.totalLength = crvLength(crv)
+  this.findPlace = (d) => {
+    while (this.i < this.crv.length - 1) {
+      this.l += sqrt((this.crv[this.i].x - this.crv[this.i + 1].x) ** 2 + (this.crv[this.i].y - this.crv[this.i + 1].y) ** 2)
+      this.i++
+      if (this.l >= d) return this.crv[this.i]
+    }
+    return false
+  }
 }
 
 function inCanvas(p) {

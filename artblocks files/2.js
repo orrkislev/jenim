@@ -1,11 +1,3 @@
-
-const stitchTypes = {
-    SINGLE: 0,
-    DOUBLE: 1,
-    CROSS: 2,
-    ZIGZAG: 3
-}
-
 class PatternShape {
     constructor(ps) {
         this.ps = ps
@@ -106,10 +98,9 @@ class LayoutPattern2 extends PatternShape {
     }
     pointInPattern(p) {
         if (!this.graphics) this.makeGraphics()
-        // exit()
         // const i = p2i(p.x, p.y, this.graphicsDensity)
         // return this.graphics.pixels[i + 3] > 0
-        return alpha(this.graphics.get(p.x, p.y)) > 0
+        return this.graphics.get(p.x, p.y)[3] > 0
     }
     getOffset(h) {
         let newPs = [...this.ps]
@@ -165,23 +156,24 @@ class LayoutPattern2 extends PatternShape {
         })
     }
 
-    setStitches(data) {
-        this.stitchData = data
+    prepareFoldedStitchings() {
+        this.stitchPlaces = R.random() < 0.5 ? [12] : [9, 25]
+        this.stitchType = this.stitchPlaces.length == 2 ?
+            R.random_choice(['normal', 'doubleTrim', 'force']) :
+            R.random_choice(['normal', 'trim', 'zigzag', 'force'])
+        this.extraStitchColor = R.random_choice([stitchColor, R.random_choice([color(0), color(255, 0, 0), color(255)])])
+
     }
 
     async drawStitches(denim = null) {
-        if (!this.stitchData) return
-
-        const stitchType = this.stitchData.length == 2 ?
-            R.random_choice(['normal', 'doubleTrim', 'force']) :
-            R.random_choice(['normal', 'trim', 'zigzag', 'force'])
+        if (!this.withStitches) return
 
         let rows = []
-        for (const d of this.stitchData) {
+        for (const d of this.stitchPlaces) {
             rows.push(this.stitches(d, 12, 4))
         }
 
-        if (['trim', 'doubleTrim'].includes(stitchType)) rows[rows.length - 1].splice(round(rows[rows.length - 1].length * R.random(.3, .7)))
+        if (['trim', 'doubleTrim'].includes(this.stitchType)) rows[rows.length - 1].splice(round(rows[rows.length - 1].length * R.random(.3, .7)))
 
         // DRAW STITCHES
         for (let row of rows) {
@@ -197,19 +189,18 @@ class LayoutPattern2 extends PatternShape {
         }
 
         // DRAW EXTRAS
-        const extraColor = R.random_choice([stitchColor, R.random_choice([color(0), color(255, 0, 0), color(255)])])
-        if (stitchType == 'doubleTrim') {
+        if (this.stitchType == 'doubleTrim') {
             const lastStitch = rows[1][rows[1].length - 1]
             const stitchDir = vsub(lastStitch[1], lastStitch[0]).setMag(5)
             const fillDir = stitchDir.copy().rotate(90)
-            const distBetweenStitches = (this.stitchData[1] - this.stitchData[0])
+            const distBetweenStitches = (this.stitchPlaces[1] - this.stitchPlaces[0])
 
             for (let i = -1 * globalScale; i < distBetweenStitches + 2 * globalScale; i += R.random(5) * globalScale) {
                 const p1 = vadd(lastStitch[0].add(stitchDir.copy().setMag(R.random(-2, 2) * globalScale)), fillDir.copy().setMag(i))
                 const p2 = vadd(lastStitch[1].add(stitchDir.copy().setMag(R.random(-2, 2) * globalScale)), fillDir.copy().setMag(i))
                 const weftLoop = denim.hasWeftOn(p1)
                 if (weftLoop) {
-                    const newLoop = new Loop([p1, p2], extraColor, initialThreadSize * 1.3).wiggle().shadow()
+                    const newLoop = new Loop([p1, p2], this.extraStitchColor, initialThreadSize * 1.3).wiggle().shadow()
                     newLoop.age = weftLoop.age
                     await newLoop.draw()
                     await timeout()
@@ -217,9 +208,9 @@ class LayoutPattern2 extends PatternShape {
             }
         }
 
-        if (['trim', 'force'].includes(stitchType)) {
+        if (['trim', 'force'].includes(this.stitchType)) {
             const lastRow = rows[rows.length - 1]
-            const lastStitch = stitchType == 'trim' ? lastRow[lastRow.length - 1] : R.random_choice(lastRow)
+            const lastStitch = this.stitchType == 'trim' ? lastRow[lastRow.length - 1] : R.random_choice(lastRow)
             const stitchDir = vsub(lastStitch[1], lastStitch[0])
             const perp = stitchDir.copy().rotate(90)
             const l = R.random(50, 100)
@@ -230,14 +221,14 @@ class LayoutPattern2 extends PatternShape {
                 const p2 = vsub(p0, dir)
                 const weftLoop = denim.hasWeftOn(p1)
                 if (weftLoop) {
-                    const newLoop = new Loop([p1, p2], extraColor, initialThreadSize * 1.3).wiggle().shadow()
+                    const newLoop = new Loop([p1, p2], this.extraStitchColor, initialThreadSize * 1.3).wiggle().shadow()
                     newLoop.age = weftLoop.age
                     await newLoop.draw()
                     await timeout()
                 }
             }
         }
-        if (stitchType == 'zigzag') {
+        if (this.stitchType == 'zigzag') {
             const startStitchIndex = round(rows[0].length * R.random(.1, .7))
             const endStitchIndex = floor(R.random(startStitchIndex, rows[0].length * (.9)))
             for (let i = startStitchIndex; i < endStitchIndex; i++) {
@@ -245,10 +236,10 @@ class LayoutPattern2 extends PatternShape {
                 const dir = vsub(st[1], st[0]).rotate(45)
                 const p1 = vadd(st[0], dir)
 
-                let newLoop = new Loop([st[0], p1], extraColor, initialThreadSize * 1.3).wiggle().shadow()
+                let newLoop = new Loop([st[0], p1], this.extraStitchColor, initialThreadSize * 1.3).wiggle().shadow()
                 await newLoop.draw()
 
-                newLoop = new Loop([p1, st[1]], extraColor, initialThreadSize * 1.3).wiggle().shadow()
+                newLoop = new Loop([p1, st[1]], this.extraStitchColor, initialThreadSize * 1.3).wiggle().shadow()
                 await newLoop.draw()
                 await timeout()
             }
@@ -396,44 +387,56 @@ function getColorFunc() {
     return res
 }
 
+function initColorFunc(colorFunc) {
+    if (!colorFunc) return null
+    return { func: colorFunc(), offsetX: R.random(-35, 35), offsetY: R.random(-35, 35) }
+}
+
+// function applyColorFunc(denim, colorFunc) {
+//     if (colorFunc) {
+//         denim.weft.forEach(col => {
+//             col.forEach(loop => {
+//                 if (loop.ps.length > 0) {
+//                     const p = loop.ps[0]
+//                     loop.color = colorFunc.func(loop.color, p.x + colorFunc.offsetX, p.y + colorFunc.offsetY)
+//                 }
+//             })
+//         })
+//     }
+// }
 
 
 
 
 
-function applyColorFunc(denim, colorFunc) {
-    if (colorFunc) {
-        colorFunc = colorFunc()
-        const offsetPosX = R.random(-35, 35)
-        const offsetPosY = R.random(-35, 35)
-        denim.weft.forEach(col => {
-            col.forEach(loop => {
-                if (loop.ps.length > 0) {
-                    const p = loop.ps[0]
-                    loop.color = colorFunc(loop.color, p.x + offsetPosX, p.y + offsetPosY)
-                }
-            })
-        })
+const getBaseColor = () =>{
+    let r = R.random_dec()
+    if (r < 0.7) {
+        patchStitch = R.random_choice([color(255, 0, 0), color(0), color(255)])
+        coloring =  { color: 'Indigo', denimStitch: 'Ochre', patchStitch }
+    } else if (r < 0.8) {
+        coloring =  { color: 'Charcoal', denimStitch: 'White', patchStitch: 'Black' }
+    } else {
+        coloring =  { color: 'Colored', denimStitch: 'White', patchStitch: 'Black' }
     }
 }
 
-
-
-
 const initBaseColor = () => {
-    const r = R.random_dec()
-    if (r < 0.7) {
-        stitchColor = color('orange')
+    if (coloring.color == 'Indigo') {
         const hue = R.random(195, 240)
-        denimColor = makeColor(hue, map(abs(hue - 220), 0, 25, 360, 250), R.random(180, 360))
-        patchStitchColor = R.random_choice([color(255, 0, 0), color(0), color(255)])
-    } else if (r < 0.88) {
-        stitchColor = color(255)
+        denimColor = makeColor(
+            hue, 
+            map(abs(hue - 220), 0, 25, 360, 250), 
+            R.random(180, 360))
+        stitchColor = color('orange')
+        patchStitchColor = coloring.patchStitch
+    } else if (coloring.color == 'Charcoal') {
         denimColor = makeColor(0, 0, 0)
+        stitchColor = color(255)
         patchStitchColor = color(255)
     } else {
-        stitchColor = color(255)
         denimColor = makeColor(R.random(0, 70), R.random(200, 360), R.random(100, 250))
+        stitchColor = color(255)
         patchStitchColor = color(0)
     }
 }
@@ -446,6 +449,7 @@ function makeColor(h, s = 360, b = 360) {
     colorMode(RGB)
     c = c.toRGB()
     return c
+    
 }
 function neighborColor(c, h = 0, s = null, b = null) {
     colorMode(HSB, 360)
@@ -479,7 +483,7 @@ async function franzim(pos, dir, l, trsz = .9) {
         const noiseVal = noise(35 * ps[ps.length - 1].x / baseWidth, 35 * ps[ps.length - 1].y / baseHeight)
         const angle2 = (noiseVal - 0.5) * 60
         const wind = Math.sign(windTarget - dir.heading())
-        const dirRotation = angle2 + R.random(-2,2) + wind
+        const dirRotation = angle2 + R.random(-2, 2) + wind
         dir.rotate(dirRotation)
         dir1.rotate(dirRotation)
         const newPoint = newPos.copy().add(dir.copy().mult(10))
@@ -528,6 +532,13 @@ class Loop {
         if (this.darkness != 0) res = neighborColor(res, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
         return res
     }
+    applyColorFunc(colorFunc) {
+        if (!colorFunc) return
+        if (this.ps.length > 0) {
+            const p = this.ps[0]
+            this.color = colorFunc.func(this.color, p.x + colorFunc.offsetX, p.y + colorFunc.offsetY)
+        }
+    }
     async draw() {
         if (this.ps.length <= 1) return
         if (this.withShadow)
@@ -565,6 +576,7 @@ async function thread(ps, clr, fluff = 1, alpha = 120) {
     strokeWeight(0.2 * threadSize * globalScale)
     clr.setAlpha(alpha)
     stroke(clr)
+    fluff *= width / 1000
     for (let f = 0; f < fluff; f++)
         for (let i = 0; i < crv.length; i++)
             await tinyThread(crv[i])

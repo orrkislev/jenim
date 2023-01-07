@@ -31,18 +31,22 @@ class Denim {
         this.age += globalAge
         this.ripMin -= globalAge * 30
         this.ripMax -= globalAge * 70
-
         if (!this.warp) this.makeWarp()
         if (!this.weft) this.makeWeft()
+
+        // console.time('trim')
         this.trim()
-        this.unravel()
-        this.doAge()
+        // console.timeEnd('trim')
+
+        // this.unravel()
+
+        // this.doAge()
         return this
     }
     async draw(args = {}) {
         threadSize = initialThreadSize
         await this.drawWarp()
-        await this.drawWeft()
+        await this.drawWeft(args.colorFunc)
         await this.lp.drawStitches(this)
         if (!args.dontFringe) await this.extendWarps()
     }
@@ -111,9 +115,11 @@ class Denim {
         threadSize = initialThreadSize
         this.weft = [{ column: this.warp.map(row => row[0]), threadSize }]
         const rowLength = crvLength(this.warp.reduce((a, b) => crvLength(a) > crvLength(b) ? a : b))
+        const crawlers = this.warp.map(row => new curveCrawler(row))
         for (let i = 0; i < rowLength; i += threadSize * R.random_in(weftSpacingMinMax)) {
             this.weft.push({
-                column: this.warp.map(row => placeOnCurve(row, i)).filter(a => a != false),
+                // column: this.warp.map(row => placeOnCurve(row, i)).filter(a => a != false),
+                column: crawlers.map(crawler => crawler.findPlace(i)).filter(a => a != false),
                 threadSize
             })
             threadSize = initialThreadSize * R.random(1, 1.2)
@@ -139,10 +145,13 @@ class Denim {
         })
     }
 
-    async drawWeft() {
+    async drawWeft(colorFunc) {
         let i = 0
         for (const col of this.weft) {
-            for (const loop of col) await loop.draw()
+            for (const loop of col) {
+                loop.applyColorFunc(colorFunc)
+                await loop.draw()
+            }
             if (i++ % 10 == 0) await timeout(0);
         }
     }
@@ -208,7 +217,7 @@ class Denim {
                         const dir1 = vsub(first, second).rotate(90)
                         if (l > this.ripMin && l < this.ripMax) {
                             let newPs = []
-                            const sumPoints = ceil(l/10)
+                            const sumPoints = ceil(l / 10)
                             for (let h = 0; h <= sumPoints; h++) {
                                 const newPos = vlerp(first, last, h / sumPoints)
                                 const offset = noise(newPos.x / 50, newPos.y / 50) * 40 - 20
@@ -320,19 +329,17 @@ class Denim {
             this.lp.dropShadowOn(denim)
     }
 
-    foldedStitchings(pattern) {
-        if (!pattern) pattern = this.lp
+    foldedStitchings() {
+        const pattern = this.lp
 
         const gh = createGraphics(baseWidth, baseHeight)
         gh.noStroke()
         const newPattern = new LayoutPattern2(pattern.ps)
 
-        const stitchPlaces = R.random() < 0.5 ? [12] : [9, 25]
-
         gh.fill(0, 20)
         newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(10) * initialThreadSize))
 
-        if (stitchPlaces.length == 2) {
+        if (pattern.stitchPlaces.length == 2) {
             let sVal = 0
             newPattern.ps = pattern.getOffset(18)
             newPattern.crv().forEach((p, i) => {
@@ -345,7 +352,7 @@ class Denim {
         }
 
         gh.fill(0, 20)
-        for (const stitchPlace of stitchPlaces) {
+        for (const stitchPlace of pattern.stitchPlaces) {
             newPattern.ps = pattern.getOffset(stitchPlace)
             newPattern.crv().forEach(p => gh.circle(p.x, p.y, R.random(7)) * initialThreadSize)
         }
@@ -365,7 +372,7 @@ class Denim {
                 }
             })
         })
-        pattern.setStitches(stitchPlaces)
+        pattern.withStitches = true
         return this
     }
 }

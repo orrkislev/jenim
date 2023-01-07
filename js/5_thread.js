@@ -21,7 +21,7 @@ async function franzim(pos, dir, l, trsz = .9) {
         const noiseVal = noise(35 * ps[ps.length - 1].x / baseWidth, 35 * ps[ps.length - 1].y / baseHeight)
         const angle2 = (noiseVal - 0.5) * 60
         const wind = Math.sign(windTarget - dir.heading())
-        const dirRotation = angle2 + R.random(-2,2) + wind
+        const dirRotation = angle2 + R.random(-2, 2) + wind
         dir.rotate(dirRotation)
         dir1.rotate(dirRotation)
         const newPoint = newPos.copy().add(dir.copy().mult(10))
@@ -70,6 +70,13 @@ class Loop {
         if (this.darkness != 0) res = neighborColor(res, 0, .5 * this.darkness * 360, -.5 * this.darkness * 360)
         return res
     }
+    applyColorFunc(colorFunc) {
+        if (!colorFunc) return
+        if (this.ps.length > 0) {
+            const p = this.ps[0]
+            this.color = colorFunc.func(this.color, p.x + colorFunc.offsetX, p.y + colorFunc.offsetY)
+        }
+    }
     async draw() {
         if (this.ps.length <= 1) return
         if (this.withShadow)
@@ -107,6 +114,7 @@ async function thread(ps, clr, fluff = 1, alpha = 120) {
     strokeWeight(0.2 * threadSize * globalScale)
     clr.setAlpha(alpha)
     stroke(clr)
+    fluff *= width / 1000
     for (let f = 0; f < fluff; f++)
         for (let i = 0; i < crv.length; i++)
             await tinyThread(crv[i])

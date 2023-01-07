@@ -61,16 +61,14 @@ function calculateFeatures(tokenData) {
         return res
     }
 
-    const getColors = (R) => {
+    const getBaseColor = (R) => {
         let r = R.random_dec()
         if (r < 0.7) {
-            x = [R.random(200, 250), 360, R.random(180, 360)]
             patchStitch = R.random_choice(['Red', 'Black', 'White'])
             return { color: 'Indigo', denimStitch: 'Ochre', patchStitch }
         } else if (r < 0.8) {
             return { color: 'Charcoal', denimStitch: 'White', patchStitch: 'Black' }
         } else {
-            x = [R.random(0, 70), R.random(200, 360), R.random(100, 250)]
             return { color: 'Colored', denimStitch: 'White', patchStitch: 'Black' }
         }
     }
@@ -79,9 +77,8 @@ function calculateFeatures(tokenData) {
 
     R = new ABRandom(tokenData)
 
-    x = R.random_int(20000)
     composition = R.random_choice(['Layered', 'Patchie', 'Distressed', 'Plain', 'Visible Mending', 'Ripped', 'Fringes'])
-    colors = getColors(R)
+    colors = getBaseColor(R)
     dyePattern1 = getColorFunc(R)
     dyePattern2 = R.random() < 0.5 ? dyePattern1 : getColorFunc(R)
 
